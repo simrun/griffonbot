@@ -2,7 +2,7 @@
 
 import sys
 
-from dummy import Stream
+from stream import Stream
 from bot import IRCBot
 import config
 
@@ -11,8 +11,8 @@ def debug(s):
 
 def main():
   debug("Main: Setting up...")
-  bot = IRCBot(config, debug)
-  stream = Stream(config, bot.message, debug)
+  bot = IRCBot(config.irc, debug)
+  stream = Stream(config.twitter, bot.message, debug)
 
   debug("Starting...")
   bot.start()
