@@ -14,8 +14,8 @@ def main():
   queue = Queue()
 
   debug("Main: Setting up")
-  bot = IRCBot(config, queue, debug)
-  stream = Stream(config, queue, debug)
+  bot = IRCBot(config, debug)
+  stream = Stream(config, bot.message, debug)
 
   debug("Starting...")
   bot.start()

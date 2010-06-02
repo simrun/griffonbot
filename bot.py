@@ -4,33 +4,31 @@ from threading import Thread
 import irclib
 
 class IRCBot:
-  def __init__(self, config, msgqueue, debug):
+  def __init__(self, config, debug):
     debug("IRC: Setting up...")
 
     self.irc = irclib.IRC();
     self.config = config
-    self.msgqueue = msgqueue
     self.debug = debug
 
     self.channels = []
 
   def start(self):
+    self.debug("IRC: Starting...")
     Thread(target=self.main).start()
-    Thread(target=self.process).start()
 
   def main(self):
-    self.debug("IRC: Running")
+    self.debug("IRC: Running!")
 
     self.connect()
     self.irc.process_forever()
 
-  def process(self):
-    while True:
-      message = self.msgqueue.get()
+  def message(self, msg):
+    self.debug("IRC: message() %s" % msg)
 
-      for channel in self.config.channels:
-        self.connection.privmsg(channel, message)
-
+    for channel in self.config.channels:
+      self.connection.privmsg(channel, msg)
+    
   def connect(self):
     self.debug("IRC: Connecting")
 
