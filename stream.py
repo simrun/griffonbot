@@ -1,7 +1,9 @@
 # Copyright (c) Daniel Richman 2010
 
-from threading import Thread
 import sys
+from threading import Thread
+
+import tweetstream
 
 class Stream:
   def __init__(self, config, callback, debug):
@@ -19,7 +21,7 @@ class Stream:
     self.debug("Stream: Running!")
 
     s = self.config
-    with tweetstream.TrackStream(s.username, s.password, s.words) as stream:
+    with tweetstream.TrackStream(s.username, s.password, s.keywords) as stream:
       for tweet in stream:
         screenname = tweet["user"]["screen_name"]
         content =  "@%s: %s" % (screenname, tweet["text"])

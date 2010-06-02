@@ -1,7 +1,7 @@
 # Copyright (c) Daniel Richman 2010
 
 class irc:
-  server   = "  freenode.net"
+  server   = "irc.freenode.net"
   port     = 6667
   nick     = "griffonbot"
   password = ""

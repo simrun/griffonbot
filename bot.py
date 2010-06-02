@@ -1,6 +1,7 @@
 # Copyright (c) Daniel Richman 2010
 
 from threading import Thread
+
 import irclib
 
 class IRCBot:
