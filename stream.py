@@ -11,9 +11,15 @@
 # GNU General Public License for more details.
 
 import sys
+import re
 from threading import Thread
+import unicodedata
 
 import tweetstream
+
+crush_whitespace_re = re.compile(r"\s+")
+def crush_whitespace(s):
+  return crush_whitespace_re.sub(" ", s)
 
 class Stream:
   def __init__(self, config, callback, debug):
@@ -36,8 +42,16 @@ class Stream:
         screenname = tweet["user"]["screen_name"]
         content =  "@%s: %s" % (screenname, tweet["text"])
         url = "http://twitter.com/%s/status/%d" % (screenname, tweet["id"])
-	formatted = "%s (%s)" % (content, url)
+        formatted = "%s (%s)" % (content, url)
 
-        self.debug("Stream: Pushing Tweet %s" % formatted)
-	self.callback(formatted)
+        # Obliterate Unicode
+        # formatted_uni = unicode(formatted) # formatted.decode('utf-8')
+        # formatted_uni_n = unicodedata.normalize('NFKD', formatted_uni)
+        # formatted_safe = formatted_uni_n.encode('ascii', 'ignore')
+
+        # Remove tabs and newlines, encode nicely.
+        formatted_safe = crush_whitespace(unicode(formatted)).encode('utf-8')
+
+        self.debug("Stream: Pushing Tweet %s" % formatted_safe)
+        self.callback(formatted_safe)
 
