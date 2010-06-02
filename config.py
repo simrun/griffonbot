@@ -1,18 +1,15 @@
 # Copyright (c) Daniel Richman 2010
 
-irc = {}
-twitter = {}
+class irc:
+  server   = "  freenode.net"
+  port     = 6667
+  nick     = "griffonbot"
+  password = ""
+  user     = "griffonbot"
+  realname = "Griffon Bot v0.1 http://github.com/ssb/griffonbot"
+  channels = [ "##banter" ]
 
-# IRC
-irc.server   = "irc.freenode.net"
-irc.port     = 6667
-irc.nick     = "griffonbot"
-irc.password = ""
-irc.user     = "griffonbot"
-irc.realname = "Griffon Bot v0.1 http://github.com/ssb/griffonbot"
-irc.channels = [ "##banter" ]
-
-# Twitter
-twitter.username = "griffonbot"
-twitter.password = ""
-twitter.keywords = [ "#ukhas", "#hab", "bieber" ]
+class twitter:
+  username = "griffonbot"
+  password = ""
+  keywords = [ "#ukhas", "#hab", "bieber" ]
