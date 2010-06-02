@@ -6,13 +6,13 @@ twitter = {}
 # IRC
 irc.server   = "irc.freenode.net"
 irc.port     = 6667
-irc.nick     = "tweetbot"
-irc.password = "a957f83f156d37dd3ee4c6c"
-irc.user     = "tweetbot"
-irc.realname = "Tweet Bot v0.1 BETA"
+irc.nick     = "griffonbot"
+irc.password = ""
+irc.user     = "griffonbot"
+irc.realname = "Griffon Bot v0.1 http://github.com/ssb/griffonbot"
 irc.channels = [ "##banter" ]
 
 # Twitter
-twitter.username = "sbasuita"
+twitter.username = "griffonbot"
 twitter.password = ""
 twitter.keywords = [ "#ukhas", "#hab", "bieber" ]
