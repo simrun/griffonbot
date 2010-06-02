@@ -26,7 +26,7 @@ class IRCBot:
   def message(self, msg):
     self.debug("IRC: message() %s" % msg)
 
-    for channel in self.config.channels:
+    for channel in self.channels:
       self.connection.privmsg(channel, msg)
     
   def connect(self):
