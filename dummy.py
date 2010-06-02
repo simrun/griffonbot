@@ -1,5 +1,6 @@
 # Copyright (c) Daniel Richman 2010
 
+from threading import Thread
 import sys
 
 class Stream:
@@ -14,7 +15,7 @@ class Stream:
     Thread(target=self.main).start()
 
   def main(self):
-    debug("Dummy Stream: Running")
+    self.debug("Dummy Stream: Running")
 
     while True:
       line = sys.stdin.readline()

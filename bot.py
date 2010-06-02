@@ -1,5 +1,6 @@
 # Copyright (c) Daniel Richman 2010
 
+from threading import Thread
 import irclib
 
 class IRCBot:
@@ -11,58 +12,78 @@ class IRCBot:
     self.msgqueue = msgqueue
     self.debug = debug
 
-    self.channels = dict()
+    self.channels = []
 
   def start(self):
     Thread(target=self.main).start()
     Thread(target=self.process).start()
 
-  def main():
+  def main(self):
     self.debug("IRC: Running")
 
     self.connect()
     self.irc.process_forever()
 
-  def process():
+  def process(self):
     while True:
       message = self.msgqueue.get()
 
       for channel in self.config.channels:
-        connection.privmsg(channel, message)
+        self.connection.privmsg(channel, message)
 
-  def connect():
+  def connect(self):
     self.debug("IRC: Connecting")
 
     s = self.config
-    connection = irc.server()
-    connection.connect(s.server, s.port, s.nick, s.password, s.user, s.realname)
+    self.connection = self.irc.server()
+    self.connection.connect(s.server, s.port, s.nick, s.password, s.user, s.realname)
 
-    connection.add_global_handler("welcome", self.on_connect)
-    connection.add_global_handler("join", self.on_join)
-    connection.add_global_handler("disconncet", self.on_disconnect)
+    self.connection.add_global_handler("welcome", self.on_connect)
+    self.connection.add_global_handler("join", self.on_join)
+    self.connection.add_global_handler("disconncet", self.on_disconnect)
 
     for event in [ "kick", "part" ]:
-      connection.add_global_handler(e, self.on_part);
+      self.connection.add_global_handler(event, self.on_part);
 
   def on_connect(conection, event):
+    if connection != self.connection:
+      debug("IRC: Incorrect connection in on_connect")
+      return
+
     self.debug("IRC: Connected; joining...")
     for channel in channels:
-      conection.join(channel)
+      self.conection.join(channel)
  
   def on_join(connection, event):
+    if connection != self.connection:
+      debug("IRC: Incorrect connection in on_join")
+      return
+
     self.debug("IRC: Joined channel %s" % event.target())
-    self.channels[event.target()] = True
+
+    if event.target() in self.channels:
+      debug("IRC: Suppressed error: %s is already in self.channels" % event.target())
+    else:
+      self.channels.append(event.target())
 
   def on_disconnect(connection, event):
+    if connection != self.connection:
+      debug("IRC: Incorrect connection in on_disconnect")
+      return
+
     self.debug("IRC: Disconnected. Reconnecting...")
-    self.channels.clear()
+    self.channels = []
     self.connect()
 
   def on_part(connection, event):
+    if connection != self.connection:
+      debug("IRC: Incorrect connection in on_part")
+      return
+
     self.debug("IRC: Left %s" % event.target())
     try:
-      del self.channels[event.target()]
+      self.channels.remove(event.target())
     except:
-      debug("IRC: Shouldn't have had error removing left channel from dict, but ignored")
+      debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
 
 

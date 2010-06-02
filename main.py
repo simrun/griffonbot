@@ -1,11 +1,14 @@
 # Copyright (c) Daniel Richman 2010
 
+from Queue import Queue
+import sys
+
 from dummy import Stream
 from bot import IRCBot
 import config
 
 def debug(s):
-  print s
+  sys.stderr.write("%s\n" % s)
 
 def main():
   queue = Queue()
