@@ -3,8 +3,8 @@
 server   = "irc.freenode.net"
 port     = 6667
 nick     = "tweetbot"
-password = "xxx"
+password = "a957f83f156d37dd3ee4c6c"
 user     = "tweetbot"
 realname = "Tweet Bot v0.1 BETA"
-channels = [ "#???" ]
+channels = [ "##banter" ]
 

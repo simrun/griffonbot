@@ -45,16 +45,16 @@ class IRCBot:
     for event in [ "kick", "part" ]:
       self.connection.add_global_handler(event, self.on_part);
 
-  def on_connect(conection, event):
+  def on_connect(self, connection, event):
     if connection != self.connection:
       debug("IRC: Incorrect connection in on_connect")
       return
 
     self.debug("IRC: Connected; joining...")
-    for channel in channels:
-      self.conection.join(channel)
+    for channel in self.config.channels:
+      self.connection.join(channel)
  
-  def on_join(connection, event):
+  def on_join(self, connection, event):
     if connection != self.connection:
       debug("IRC: Incorrect connection in on_join")
       return
@@ -66,7 +66,7 @@ class IRCBot:
     else:
       self.channels.append(event.target())
 
-  def on_disconnect(connection, event):
+  def on_disconnect(self, connection, event):
     if connection != self.connection:
       debug("IRC: Incorrect connection in on_disconnect")
       return
@@ -75,7 +75,7 @@ class IRCBot:
     self.channels = []
     self.connect()
 
-  def on_part(connection, event):
+  def on_part(self, connection, event):
     if connection != self.connection:
       debug("IRC: Incorrect connection in on_part")
       return
@@ -85,5 +85,4 @@ class IRCBot:
       self.channels.remove(event.target())
     except:
       debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
-
 
