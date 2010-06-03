@@ -49,14 +49,14 @@ class ReconnectingTrackStream(tweetstream.ReconnectingTweetStream, \
   def next(self):
     while True:
       try:
-	return tweetstream.TweetStream.next(self)
+        return tweetstream.TweetStream.next(self)
       except tweetstream.ConnectionError, e:
         self._reconnects += 1
-	proposed_wait = 2 * self._reconnects
-	if proposed_wait < self.max_reconnect_wait:
-	  time.sleep(proposed_wait)
-	else:
-	  time.sleep(self.max_reconnect_wait)
+        proposed_wait = 2 * self._reconnects
+        if proposed_wait < self.max_reconnect_wait:
+          time.sleep(proposed_wait)
+        else:
+          time.sleep(self.max_reconnect_wait)
 
 class Stream:
   def __init__(self, config, callback, debug):
