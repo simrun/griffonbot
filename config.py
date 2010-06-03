@@ -13,7 +13,7 @@
 class twitter:
   username = "griffonbot"
   password = ""
-  keywords = [ "#ukhas", "#hab", "bieber" ]
+  keywords = [ "#griffonbot" ]
 
 class irc:
   server   = "irc.freenode.net"
@@ -21,7 +21,7 @@ class irc:
   nick     = "griffonbot"
   password = ""
   user     = "griffonbot"
-  realname = "Griffon Bot http://github.com/ssb/griffonbot"
+  realname = "GriffonBot [http://github.com/ssb/griffonbot]"
   channels = [ "##banter" ]
 
   class flood:
