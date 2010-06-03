@@ -92,6 +92,7 @@ class IRCBot:
     self.debug("IRC: Connecting")
 
     s = self.config
+    self.channels = []
     self.connection = self.irc.server()
     self.connection.connect(s.server, s.port, s.nick, s.password, s.user, s.realname)
 
