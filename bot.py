@@ -88,8 +88,8 @@ class IRCBot:
  
       self.debug("IRC: Dropped %i of %i queued messages (flood)" \
                  % (items, size))
-      self.queue_action("dropped %i of %i queued messages in the name of \
-                         flood-control" % (items, size))
+      self.queue_action("dropped %i of %i queued messages in the name of " \
+                        "flood-control" % (items, size))
 
   def message(self, msg):
     self.debug("IRC: message() %s" % msg)
@@ -161,8 +161,8 @@ class IRCBot:
           % self.config.max_reconnect_wait)
       time.sleep(self.config.max_reconnect_wait)
 
-    self.debug("IRC: Slept; now raising ConnectionDeadException \
-                in order to reconnect...")
+    self.debug("IRC: Slept; now raising ConnectionDeadException " \
+               "in order to reconnect...")
     raise ConnectionDeadException
 
   def on_part(self, connection, event):
@@ -174,8 +174,8 @@ class IRCBot:
     try:
       self.channels.remove(event.target())
     except:
-      self.debug("IRC: Suppressed error: couldn't remove %s from \
-                  self.channels" % event.target())
+      self.debug("IRC: Suppressed error: couldn't remove %s from " \
+                 "self.channels" % event.target())
 
 class ConnectionDeadException(Exception):
   pass

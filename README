@@ -1,4 +1,4 @@
-= About ========================================================================
+= About =======================================================================
 
 GriffonBot will follow a set of keywords on Twitter, posting any tweets in
 which they occur to its IRC channels. If disconnected, it will automatically
@@ -10,7 +10,7 @@ GriffonBot was quickly hacked together by:
  - Simrun Basuita <simrunbasuita@gmail.com>
  - Daniel Richman <main@danielrichman.co.uk>
 
-= Instructions =================================================================
+= Instructions ================================================================
 
 1) Install dependencies:
    - python-irclib
@@ -18,7 +18,7 @@ GriffonBot was quickly hacked together by:
 2) Edit the variables in ./config.py
 3) Run ./main.py
 
-= Legal ========================================================================
+= Legal =======================================================================
 
 GriffonBot is Copyright 2010 Daniel Richman and Simrun Basuita
 
