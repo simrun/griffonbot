@@ -67,20 +67,19 @@ class IRCBot:
     self.debug("IRC: Queue size = %i, queue_max = %i" % (size, self.config.flood.queue_max))
 
     if size > self.config.flood.queue_max:
-      drop_items = size * self.config.flood.queue_drop
       items = 0
 
-      self.debug("IRC: Queue: queue_drop = %i, attempting to drop %i items" % (self.config.flood.queue_drop, drop_items))
+      self.debug("IRC: Queue - attempting to drop %i items" % self.config.flood.queue_drop)
 
       try:
-        for i in range(0, drop_items):
+        for i in range(0, self.config.flood.queue_drop):
           self.queue.get_nowait()
           items = items + 1
       except Queue.Empty:
         pass
  
-      self.debug("IRC: Dropped %i messages (flood)" % items)
-      self.queue_action("dropped %i messages in the name of flood-control" % items)
+      self.debug("IRC: Dropped %i of %i queued messages (flood)" % (items, size))
+      self.queue_action("dropped %i of %i queued messages in the name of flood-control" % (items, size))
 
   def message(self, msg):
     self.debug("IRC: message() %s" % msg)

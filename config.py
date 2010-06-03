@@ -21,8 +21,8 @@ class irc:
 
   class flood:
     wait = 3
-    queue_max = 50
-    queue_drop = 0.5
+    queue_max = 20
+    queue_drop = 18
 
   @classmethod
   def join_msg(self, message, action):
