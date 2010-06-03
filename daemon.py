@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2010 Daniel Richman and Simrun Basuita
 
 # This program is free software: you can redistribute it and/or modify
@@ -13,29 +11,19 @@
 # GNU General Public License for more details.
 
 import sys
+import threading
+import traceback
 
-from stream import Stream
-from bot import IRCBot
-from daemon import die
-import config
+die = threading.Event()
 
-def debug(s):
-  sys.stderr.write("%s\n" % s)
+class DaemonThread(threading.Thread):
+  def start(self):
+    self.daemon = True
+    super(DaemonThread, self).start()
 
-def main():
-  debug("Main: Setting up...")
-  bot = IRCBot(config.irc, debug)
-  stream = Stream(config.twitter, bot.queue_message, debug)
-
-  debug("Main: Starting...")
-  bot.start()
-  stream.start()
-
-  debug("Main: Now waiting...")
-  die.wait()
-
-  debug("Dead: Exiting...")
-  sys.exit()
-
-
-main()
+  def run(self):
+    try:
+      super(DaemonThread, self).run()
+    except:
+      traceback.print_exc(file=sys.stderr)
+      die.set()

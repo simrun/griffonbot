@@ -13,7 +13,7 @@
 import sys
 import time
 import re
-from threading import Thread
+from daemon import DaemonThread
 import unicodedata
 from xml.sax import saxutils
 
@@ -49,7 +49,8 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
 
     self.debug = debug
 
-    tweetstream.TrackStream.__init__(self, username, password, keywords, url)
+    super(ReconnectingTrackStream, self).__init__(username, password, \
+                                                  keywords, url)
 
   def next(self):
     while True:
@@ -81,7 +82,7 @@ class Stream:
 
   def start(self):
     self.debug("Stream: Starting...")
-    Thread(target=self.main).start()
+    DaemonThread(target=self.main).start()
 
   def main(self):
     self.debug("Stream: Running!")

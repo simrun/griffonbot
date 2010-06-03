@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 
 import Queue
-from threading import Thread
+from daemon import DaemonThread
 import time
 
 import irclib
@@ -31,8 +31,8 @@ class IRCBot:
 
   def start(self):
     self.debug("IRC: Starting...")
-    Thread(target=self.main).start()
-    Thread(target=self.process_queue).start()
+    DaemonThread(target=self.main).start()
+    DaemonThread(target=self.process_queue).start()
 
   def main(self):
     self.debug("IRC: Running!")
