@@ -104,7 +104,7 @@ class IRCBot:
 
   def on_connect(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_connect")
+      self.debug("IRC: Incorrect connection in on_connect")
       return
 
     self.debug("IRC: Connected; joining...")
@@ -113,21 +113,20 @@ class IRCBot:
  
   def on_join(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_join")
+      self.debug("IRC: Incorrect connection in on_join")
       return
 
     self.debug("IRC: Joined channel %s" % event.target())
 
     if event.target() in self.channels:
-      debug("IRC: Suppressed error: %s is already in self.channels" % event.target())
+      self.debug("IRC: Suppressed error: %s is already in self.channels" % event.target())
     else:
       self.channels.append(event.target())
-
-    self.config.join_msg(self.queue_message, self.queue_action)
+      self.config.join_msg(self.queue_message, self.queue_action)
 
   def on_disconnect(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_disconnect")
+      self.debug("IRC: Incorrect connection in on_disconnect")
       return
 
     self.debug("IRC: Disconnected. Reconnecting...")
@@ -136,12 +135,12 @@ class IRCBot:
 
   def on_part(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_part")
+      self.debug("IRC: Incorrect connection in on_part")
       return
 
     self.debug("IRC: Left %s" % event.target())
     try:
       self.channels.remove(event.target())
     except:
-      debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
+      self.debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
 
