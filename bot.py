@@ -57,6 +57,7 @@ class IRCBot:
 
       except irclib.ServerNotConnectedError:
         self.debug("IRC: Caught irclib.ServerNotConnectedError; restarting...")
+        self.channels = []
 
   def queue_message(self, msg):
     self.debug("IRC: queue.put() %s" % msg)
