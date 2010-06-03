@@ -20,13 +20,14 @@ class irc:
   channels = [ "##banter" ]
 
   class flood:
-    wait = 1
-    queue_max = 10
+    wait = 3
+    queue_max = 20
+    queue_drop = 18
 
   @classmethod
-  def join_msg(self, action_callback):
-    action_callback("is %s" % irc.realname)
-    action_callback("is following: %s" % " ".join(twitter.keywords))
+  def join_msg(self, message, action):
+    action("is %s" % irc.realname)
+    action("is following: %s" % " ".join(twitter.keywords))
 
 class twitter:
   username = "griffonbot"

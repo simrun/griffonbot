@@ -50,10 +50,7 @@ class IRCBot:
     self.debug("IRC: Running (process_queue)!")
 
     while True:
-      if self.queue.qsize() > self.config.flood.queue_max:
-        items = self.empty_queue()
-        self.debug("IRC: Dropping %i messages (flood)" % items)
-        self.queue_action("dropped %i messages in the name of flood-control" % items)
+      self.regulate_queue()
 
       self.debug("IRC: waiting on queue.get...")
       msg = self.queue.get()
@@ -63,19 +60,26 @@ class IRCBot:
       self.debug("IRC: flood.wait...")
       time.sleep(self.config.flood.wait)
 
-  def empty_queue(self):
-    self.debug("IRC: Emptying queue...")
-    items = 0
+  def regulate_queue(self):
+    self.debug("IRC: Examining Queue...")
 
-    try:
-      while True:
-        self.queue.get_nowait()
-        items = items + 1
-    except Queue.Empty:
-      pass
+    size = self.queue.qsize()
+    self.debug("IRC: Queue size = %i, queue_max = %i" % (size, self.config.flood.queue_max))
 
-    self.debug("IRC: Emptied %i items" % items)
-    return items
+    if size > self.config.flood.queue_max:
+      items = 0
+
+      self.debug("IRC: Queue - attempting to drop %i items" % self.config.flood.queue_drop)
+
+      try:
+        for i in range(0, self.config.flood.queue_drop):
+          self.queue.get_nowait()
+          items = items + 1
+      except Queue.Empty:
+        pass
+ 
+      self.debug("IRC: Dropped %i of %i queued messages (flood)" % (items, size))
+      self.queue_action("dropped %i of %i queued messages in the name of flood-control" % (items, size))
 
   def message(self, msg):
     self.debug("IRC: message() %s" % msg)
@@ -100,7 +104,7 @@ class IRCBot:
 
   def on_connect(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_connect")
+      self.debug("IRC: Incorrect connection in on_connect")
       return
 
     self.debug("IRC: Connected; joining...")
@@ -109,21 +113,20 @@ class IRCBot:
  
   def on_join(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_join")
+      self.debug("IRC: Incorrect connection in on_join")
       return
 
     self.debug("IRC: Joined channel %s" % event.target())
 
     if event.target() in self.channels:
-      debug("IRC: Suppressed error: %s is already in self.channels" % event.target())
+      self.debug("IRC: Suppressed error: %s is already in self.channels" % event.target())
     else:
       self.channels.append(event.target())
-
-    self.config.join_msg(self.queue_action)
+      self.config.join_msg(self.queue_message, self.queue_action)
 
   def on_disconnect(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_disconnect")
+      self.debug("IRC: Incorrect connection in on_disconnect")
       return
 
     self.debug("IRC: Disconnected. Reconnecting...")
@@ -132,12 +135,12 @@ class IRCBot:
 
   def on_part(self, connection, event):
     if connection != self.connection:
-      debug("IRC: Incorrect connection in on_part")
+      self.debug("IRC: Incorrect connection in on_part")
       return
 
     self.debug("IRC: Left %s" % event.target())
     try:
       self.channels.remove(event.target())
     except:
-      debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
+      self.debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
 
