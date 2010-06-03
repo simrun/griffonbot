@@ -50,10 +50,7 @@ class IRCBot:
     self.debug("IRC: Running (process_queue)!")
 
     while True:
-      if self.queue.qsize() > self.config.flood.queue_max:
-        items = self.empty_queue()
-        self.debug("IRC: Dropping %i messages (flood)" % items)
-        self.queue_action("dropped %i messages in the name of flood-control" % items)
+      self.regulate_queue()
 
       self.debug("IRC: waiting on queue.get...")
       msg = self.queue.get()
@@ -63,19 +60,27 @@ class IRCBot:
       self.debug("IRC: flood.wait...")
       time.sleep(self.config.flood.wait)
 
-  def empty_queue(self):
-    self.debug("IRC: Emptying queue...")
-    items = 0
+  def regulate_queue(self):
+    self.debug("IRC: Examining Queue...")
 
-    try:
-      while True:
-        self.queue.get_nowait()
-        items = items + 1
-    except Queue.Empty:
-      pass
+    size = self.queue.qsize()
+    self.debug("IRC: Queue size = %i, queue_max = %i" % (size, self.config.flood.queue_max))
 
-    self.debug("IRC: Emptied %i items" % items)
-    return items
+    if size > self.config.flood.queue_max:
+      drop_items = size * self.config.flood.queue_drop
+      items = 0
+
+      self.debug("IRC: Queue: queue_drop = %i, attempting to drop %i items" % (self.config.flood.queue_drop, drop_items))
+
+      try:
+        for i in range(0, drop_items):
+          self.queue.get_nowait()
+          items = items + 1
+      except Queue.Empty:
+        pass
+ 
+      self.debug("IRC: Dropped %i messages (flood)" % items)
+      self.queue_action("dropped %i messages in the name of flood-control" % items)
 
   def message(self, msg):
     self.debug("IRC: message() %s" % msg)
@@ -119,7 +124,7 @@ class IRCBot:
     else:
       self.channels.append(event.target())
 
-    self.config.join_msg(self.queue_action)
+    self.config.join_msg(self.queue_message, self.queue_action)
 
   def on_disconnect(self, connection, event):
     if connection != self.connection:
