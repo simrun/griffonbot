@@ -10,11 +10,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import sys
 import Queue
 from daemon import DaemonThread
 import time
+import threading
 
 import irclib
+
+def action_message(act):
+  return "\x01ACTION %s \x01" % act
 
 class IRCBot:
   def __init__(self, config, debug):
@@ -26,6 +31,7 @@ class IRCBot:
     self.queue = Queue.Queue()
 
     self.reconnects = 0
+    self.dead = threading.Event()
 
     self.channels = []
 
@@ -40,13 +46,17 @@ class IRCBot:
     while True:
       try:
         self.connect()
-        self.irc.process_forever()
-      except ConnectionDeadException:
-        self.debug("IRC: Caught ConnectionDeadException; restarting...")
 
-  def queue_action(self, act):
-    self.debug("IRC: queuing action message %s" % act)
-    self.message("\x01ACTION %s \x01" % act)
+        while True:
+          self.irc.process_once(1)
+
+          if self.dead.isSet():
+            self.debug("IRC: process_queue thread says it's dead.")
+            self.dead.clear()
+            raise irclib.ServerNotConnectedError
+
+      except irclib.ServerNotConnectedError:
+        self.debug("IRC: Caught irclib.ServerNotConnectedError; restarting...")
 
   def queue_message(self, msg):
     self.debug("IRC: queue.put() %s" % msg)
@@ -61,10 +71,16 @@ class IRCBot:
       self.debug("IRC: waiting on queue.get...")
       msg = self.queue.get()
       self.debug("IRC: queue.get() got %s" % msg)
-      self.message(msg)
 
-      self.debug("IRC: flood.wait...")
-      time.sleep(self.config.flood.wait)
+      try:
+        self.message_all(msg)
+      except irclib.ServerNotConnectedError:
+        self.debug("IRC: Got error when trying to send message. "
+                   "Clearing channels")
+        self.debug("IRC: process_queue() thread setting dead")
+        self.channels = []
+        self.dead.set()
+
 
   def regulate_queue(self):
     self.debug("IRC: Examining Queue...")
@@ -88,16 +104,24 @@ class IRCBot:
  
       self.debug("IRC: Dropped %i of %i queued messages (flood)" \
                  % (items, size))
-      self.queue_action("dropped %i of %i queued messages in the name of " \
-                        "flood-control" % (items, size))
+      self.message_all(action_message("dropped %i of %i queued messages "\
+                                      "in the name of flood-control" % \
+                                      (items, size)))
 
-  def message(self, msg):
+  def message_all(self, msg):
     self.debug("IRC: message() %s" % msg)
 
     for channel in self.channels:
-      self.debug("IRC: message -> %s" % channel)
-      self.connection.privmsg(channel, msg)
-    
+      self.message(msg, channel)
+
+  def message(self, msg, channel):
+    self.debug("IRC: message -> %s" % channel)
+    self.connection.privmsg(channel, msg)
+
+    self.debug("IRC: flood.wait...")
+    time.sleep(self.config.flood.wait)
+
+ 
   def connect(self):
     self.debug("IRC: Connecting")
 
@@ -140,8 +164,8 @@ class IRCBot:
       self.debug("IRC: Suppressed error: %s is already in self.channels" \
                  % event.target())
     else:
+      self.config.join_msg(JoinMessageConnection(self, event.target()))
       self.channels.append(event.target())
-      self.config.join_msg(self.queue_message, self.queue_action)
 
   def on_disconnect(self, connection, event):
     if connection != self.connection:
@@ -161,9 +185,9 @@ class IRCBot:
           % self.config.max_reconnect_wait)
       time.sleep(self.config.max_reconnect_wait)
 
-    self.debug("IRC: Slept; now raising ConnectionDeadException " \
+    self.debug("IRC: Slept; now raising irclib.ServerNotConnectedError " \
                "in order to reconnect...")
-    raise ConnectionDeadException
+    raise irclib.ServerNotConnectedError
 
   def on_part(self, connection, event):
     if connection != self.connection:
@@ -177,5 +201,15 @@ class IRCBot:
       self.debug("IRC: Suppressed error: couldn't remove %s from " \
                  "self.channels" % event.target())
 
-class ConnectionDeadException(Exception):
-  pass
+class JoinMessageConnection():
+  def __init__(self, bot, channel):
+    self.bot = bot
+    self.channel = channel
+
+  def action(self, msg):
+    self.message(action_message(msg))
+
+  def message(self, msg):
+    self.bot.debug("IRC: JoinMessageConnection message() %s" % msg)
+    self.bot.message(msg, self.channel)
+

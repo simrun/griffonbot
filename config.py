@@ -13,7 +13,7 @@
 class twitter:
   username = "griffonbot"
   password = ""
-  keywords = [ "#griffonbot" ]
+  keywords = [ "bieber" ]
   max_reconnect_wait = 60
 
 class irc:
@@ -23,7 +23,7 @@ class irc:
   password = ""
   user     = "griffonbot"
   realname = "GriffonBot [http://github.com/ssb/griffonbot]"
-  channels = [ "##banter" ]
+  channels = [ "#griffonbot", "##banter99" ]
   max_reconnect_wait = 60
 
   class flood:
@@ -32,6 +32,6 @@ class irc:
     queue_drop = 18
 
   @classmethod
-  def join_msg(self, message, action):
-    action("is %s" % irc.realname)
-    action("is following: %s" % " ".join(twitter.keywords))
+  def join_msg(self, con):
+    con.action("is %s" % irc.realname)
+    con.action("is following: %s" % " ".join(twitter.keywords))
