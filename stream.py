@@ -11,6 +11,7 @@
 # GNU General Public License for more details.
 
 import sys
+import time
 import re
 from threading import Thread
 import unicodedata
@@ -30,16 +31,26 @@ def format_tweet(tweet):
 
 class ReconnectingTrackStream(tweetstream.ReconnectingTweetStream, \
                               tweetstream.TrackStream):
-  def __init__(self, username, password, keywords, url="track", reconnects=3, \
-               error_cb=None, retry_wait=5):
-    self.max_reconnects = reconnects
-    self.retry_wait = retry_wait
+  def __init__(self, username, password, keywords, url="track", \
+               max_reconnect_wait=60):
+    self.max_reconnect_wait = max_reconnect_wait
     self._reconnects = 0
-    self._error_cb = error_cb
 
     self.keywords = keywords
 
     tweetstream.TweetStream.__init__(self, username, password, url=url)
+
+  def next(self):
+    while True:
+      try:
+	return tweetstream.TweetStream.next(self)
+      except tweetstream.ConnectionError, e:
+        self._reconnects += 1
+	proposed_wait = 2 * self._reconnects
+	if proposed_wait < self.max_reconnect_wait:
+	  time.sleep(proposed_wait)
+	else:
+	  time.sleep(self.max_reconnect_wait)
 
 class Stream:
   def __init__(self, config, callback, debug):
