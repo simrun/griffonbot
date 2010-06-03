@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright 2010 Daniel Richman and Simrun Basuita
 
 # This program is free software: you can redistribute it and/or modify

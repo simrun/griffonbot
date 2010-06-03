@@ -10,13 +10,18 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+class twitter:
+  username = "griffonbot"
+  password = ""
+  keywords = [ "#ukhas", "#hab", "bieber" ]
+
 class irc:
   server   = "irc.freenode.net"
   port     = 6667
   nick     = "griffonbot"
   password = ""
   user     = "griffonbot"
-  realname = "Griffon Bot v0.1 http://github.com/ssb/griffonbot"
+  realname = "Griffon Bot http://github.com/ssb/griffonbot"
   channels = [ "##banter" ]
 
   class flood:
@@ -28,8 +33,3 @@ class irc:
   def join_msg(self, message, action):
     action("is %s" % irc.realname)
     action("is following: %s" % " ".join(twitter.keywords))
-
-class twitter:
-  username = "griffonbot"
-  password = ""
-  keywords = [ "#ukhas", "#hab", "bieber" ]

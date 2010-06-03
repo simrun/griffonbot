@@ -1,0 +1,36 @@
+= About ========================================================================
+
+GriffonBot will follow a set of keywords on Twitter, posting any tweets in which they occur to its IRC channels. If disconnected, it will automatically reconnect to both its IRC server and the Twitter streaming server.
+
+The project is hosted at http://github.com/ssb/griffonbot
+
+= Instructions =================================================================
+
+1) Install dependencies:
+   - python-irclib
+   - tweetstream
+
+2) Edit the variables in ./config.py
+3) Run ./main.py
+
+= Authors ======================================================================
+
+Simrun Basuita <simrunbasuita@gmail.com>
+Daniel Richman <main@danielrichman.co.uk>
+
+= Legal ========================================================================
+
+GriffonBot is Copyright 2010 Daniel Richman and Simrun Basuita
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
