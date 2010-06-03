@@ -19,14 +19,20 @@ import tweetstream
 
 crush_whitespace_re = re.compile(r"\s+")
 def crush_whitespace(s):
-  return crush_whitespace_re.sub(" ", s)
+  # remove tabs and newlines
+  return crush_whitespace_re.sub(" ", unicode(s))
+
+def fix_unicode(s):
+  return unicode(s).encode('utf-8')
+
+def crush_unicode(s):
+  return unicodedata.normalize('NFKD', unicode(s)).encode('ascii', 'ignore')
 
 def format_tweet(tweet):
   screenname = tweet["user"]["screen_name"]
   content =  "@%s: %s" % (screenname, tweet["text"])
   url = "http://twitter.com/%s/status/%d" % (screenname, tweet["id"])
   return "%s [%s]" % (content, url)
-
 
 class ReconnectingTrackStream(tweetstream.ReconnectingTweetStream, \
                               tweetstream.TrackStream):
@@ -59,14 +65,8 @@ class Stream:
     s = self.config
     with ReconnectingTrackStream(s.username, s.password, s.keywords) as stream:
       for tweet in stream:
-        # Obliterate Unicode
-        # formatted_uni = unicode(formatted) # formatted.decode('utf-8')
-        # formatted_uni_n = unicodedata.normalize('NFKD', formatted_uni)
-        # formatted_safe = formatted_uni_n.encode('ascii', 'ignore')
-
         # Remove tabs and newlines, encode nicely.
-        formatted_safe = \
-	  crush_whitespace(unicode(format_tweet(tweet))).encode('utf-8')
+        formatted_safe = fix_unicode(crush_whitespace(format_tweet(tweet)))
 
         self.debug("Stream: Pushing Tweet %s" % formatted_safe)
         self.callback(formatted_safe)
