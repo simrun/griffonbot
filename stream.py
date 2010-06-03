@@ -88,7 +88,8 @@ class Stream:
     self.debug("Stream: Running!")
 
     s = self.config
-    with ReconnectingTrackStream(self.debug, s.username, s.password, s.keywords) as stream:
+    with ReconnectingTrackStream(self.debug, s.username, s.password, \
+                                 s.keywords) as stream:
       for tweet in stream:
         for f in [ format_tweet, crush_whitespace, fix_entities, fix_unicode ]:
           tweet = f(tweet)
