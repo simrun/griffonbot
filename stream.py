@@ -21,6 +21,26 @@ crush_whitespace_re = re.compile(r"\s+")
 def crush_whitespace(s):
   return crush_whitespace_re.sub(" ", s)
 
+def format_tweet(tweet):
+  screenname = tweet["user"]["screen_name"]
+  content =  "@%s: %s" % (screenname, tweet["text"])
+  url = "http://twitter.com/%s/status/%d" % (screenname, tweet["id"])
+  return "%s [%s]" % (content, url)
+
+
+class ReconnectingTrackStream(tweetstream.ReconnectingTweetStream, \
+                              tweetstream.TrackStream):
+  def __init__(self, username, password, keywords, url="track", reconnects=3, \
+               error_cb=None, retry_wait=5):
+    self.max_reconnects = reconnects
+    self.retry_wait = retry_wait
+    self._reconnects = 0
+    self._error_cb = error_cb
+
+    self.keywords = keywords
+
+    tweetstream.TweetStream.__init__(self, username, password, url=url)
+
 class Stream:
   def __init__(self, config, callback, debug):
     debug("Stream: Setting up...")
@@ -37,20 +57,16 @@ class Stream:
     self.debug("Stream: Running!")
 
     s = self.config
-    with tweetstream.TrackStream(s.username, s.password, s.keywords) as stream:
+    with ReconnectingTrackStream(s.username, s.password, s.keywords) as stream:
       for tweet in stream:
-        screenname = tweet["user"]["screen_name"]
-        content =  "@%s: %s" % (screenname, tweet["text"])
-        url = "http://twitter.com/%s/status/%d" % (screenname, tweet["id"])
-        formatted = "%s (%s)" % (content, url)
-
         # Obliterate Unicode
         # formatted_uni = unicode(formatted) # formatted.decode('utf-8')
         # formatted_uni_n = unicodedata.normalize('NFKD', formatted_uni)
         # formatted_safe = formatted_uni_n.encode('ascii', 'ignore')
 
         # Remove tabs and newlines, encode nicely.
-        formatted_safe = crush_whitespace(unicode(formatted)).encode('utf-8')
+        formatted_safe = \
+	  crush_whitespace(unicode(format_tweet(tweet))).encode('utf-8')
 
         self.debug("Stream: Pushing Tweet %s" % formatted_safe)
         self.callback(formatted_safe)
