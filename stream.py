@@ -19,6 +19,10 @@ from xml.sax import saxutils
 
 import tweetstream
 
+# Monkey Patch
+import socket
+socket._fileobject.default_bufsize = 1
+
 crush_whitespace_re = re.compile(r"\s+")
 def crush_whitespace(s):
   # remove tabs and newlines
@@ -55,7 +59,7 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
   def next(self):
     while True:
       try:
-        data = tweetstream.TweetStream.next(self)
+        data = super(ReconnectingTrackStream, self).next()
         self.reconnects = 0
         return data
       except tweetstream.ConnectionError, e:
