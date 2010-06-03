@@ -1,6 +1,8 @@
 = About ========================================================================
 
-GriffonBot will follow a set of keywords on Twitter, posting any tweets in which they occur to its IRC channels. If disconnected, it will automatically reconnect to both its IRC server and the Twitter streaming server.
+GriffonBot will follow a set of keywords on Twitter, posting any tweets in
+which they occur to its IRC channels. If disconnected, it will automatically
+reconnect to both its IRC server and the Twitter streaming server.
 
 The project is hosted at http://github.com/ssb/griffonbot
 
