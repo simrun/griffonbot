@@ -70,12 +70,14 @@ class IRCBot:
     self.debug("IRC: Examining Queue...")
 
     size = self.queue.qsize()
-    self.debug("IRC: Queue size = %i, queue_max = %i" % (size, self.config.flood.queue_max))
+    self.debug("IRC: Queue size = %i, queue_max = %i" \
+               % (size, self.config.flood.queue_max))
 
     if size > self.config.flood.queue_max:
       items = 0
 
-      self.debug("IRC: Queue - attempting to drop %i items" % self.config.flood.queue_drop)
+      self.debug("IRC: Queue - attempting to drop %i items" \
+                 % self.config.flood.queue_drop)
 
       try:
         for i in range(0, self.config.flood.queue_drop):
@@ -84,8 +86,10 @@ class IRCBot:
       except Queue.Empty:
         pass
  
-      self.debug("IRC: Dropped %i of %i queued messages (flood)" % (items, size))
-      self.queue_action("dropped %i of %i queued messages in the name of flood-control" % (items, size))
+      self.debug("IRC: Dropped %i of %i queued messages (flood)" \
+                 % (items, size))
+      self.queue_action("dropped %i of %i queued messages in the name of \
+                         flood-control" % (items, size))
 
   def message(self, msg):
     self.debug("IRC: message() %s" % msg)
@@ -102,7 +106,8 @@ class IRCBot:
     self.connection = self.irc.server()
 
     try:
-      self.connection.connect(s.server, s.port, s.nick, s.password, s.user, s.realname)
+      self.connection.connect(s.server, s.port, s.nick, s.password, s.user, \
+                              s.realname)
     except irclib.ServerConnectionError:
       self.on_disconnect(self.connection, None)
 
@@ -132,7 +137,8 @@ class IRCBot:
     self.debug("IRC: Joined channel %s" % event.target())
 
     if event.target() in self.channels:
-      self.debug("IRC: Suppressed error: %s is already in self.channels" % event.target())
+      self.debug("IRC: Suppressed error: %s is already in self.channels" \
+                 % event.target())
     else:
       self.channels.append(event.target())
       self.config.join_msg(self.queue_message, self.queue_action)
@@ -155,7 +161,8 @@ class IRCBot:
           % self.config.max_reconnect_wait)
       time.sleep(self.config.max_reconnect_wait)
 
-    self.debug("IRC: Slept; now raising ConnectionDeadException in order to reconnect...")
+    self.debug("IRC: Slept; now raising ConnectionDeadException \
+                in order to reconnect...")
     raise ConnectionDeadException
 
   def on_part(self, connection, event):
@@ -167,7 +174,8 @@ class IRCBot:
     try:
       self.channels.remove(event.target())
     except:
-      self.debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
+      self.debug("IRC: Suppressed error: couldn't remove %s from \
+                  self.channels" % event.target())
 
 class ConnectionDeadException(Exception):
   pass
