@@ -14,6 +14,7 @@ import sys
 import re
 from threading import Thread
 import unicodedata
+from xml.sax import saxutils
 
 import tweetstream
 
@@ -21,6 +22,9 @@ crush_whitespace_re = re.compile(r"\s+")
 def crush_whitespace(s):
   # remove tabs and newlines
   return crush_whitespace_re.sub(" ", unicode(s))
+
+def fix_entities(s):
+  return saxutils.unescape(unicode(s))
 
 def fix_unicode(s):
   return unicode(s).encode('utf-8')
@@ -65,9 +69,9 @@ class Stream:
     s = self.config
     with ReconnectingTrackStream(s.username, s.password, s.keywords) as stream:
       for tweet in stream:
-        # Remove tabs and newlines, encode nicely.
-        formatted_safe = fix_unicode(crush_whitespace(format_tweet(tweet)))
+        for f in [ format_tweet, crush_whitespace, fix_entities, fix_unicode ]:
+          tweet = f(tweet)
 
-        self.debug("Stream: Pushing Tweet %s" % formatted_safe)
-        self.callback(formatted_safe)
+        self.debug("Stream: Pushing Tweet %s" % tweet)
+        self.callback(tweet)
 
