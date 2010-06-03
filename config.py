@@ -14,6 +14,7 @@ class twitter:
   username = "griffonbot"
   password = ""
   keywords = [ "#griffonbot" ]
+  max_reconnect_wait = 60
 
 class irc:
   server   = "irc.freenode.net"
@@ -23,6 +24,7 @@ class irc:
   user     = "griffonbot"
   realname = "GriffonBot [http://github.com/ssb/griffonbot]"
   channels = [ "##banter" ]
+  max_reconnect_wait = 60
 
   class flood:
     wait = 3

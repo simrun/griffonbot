@@ -25,6 +25,8 @@ class IRCBot:
     self.debug = debug
     self.queue = Queue.Queue()
 
+    self.reconnects = 0
+
     self.channels = []
 
   def start(self):
@@ -35,8 +37,12 @@ class IRCBot:
   def main(self):
     self.debug("IRC: Running!")
 
-    self.connect()
-    self.irc.process_forever()
+    while True:
+      try:
+        self.connect()
+        self.irc.process_forever()
+      except ConnectionDeadException:
+        self.debug("IRC: Caught ConnectionDeadException; restarting...")
 
   def queue_action(self, act):
     self.debug("IRC: queuing action message %s" % act)
@@ -94,7 +100,11 @@ class IRCBot:
     s = self.config
     self.channels = []
     self.connection = self.irc.server()
-    self.connection.connect(s.server, s.port, s.nick, s.password, s.user, s.realname)
+
+    try:
+      self.connection.connect(s.server, s.port, s.nick, s.password, s.user, s.realname)
+    except irclib.ServerConnectionError:
+      self.on_disconnect(self.connection, None)
 
     self.connection.add_global_handler("welcome", self.on_connect)
     self.connection.add_global_handler("join", self.on_join)
@@ -111,6 +121,8 @@ class IRCBot:
     self.debug("IRC: Connected; joining...")
     for channel in self.config.channels:
       self.connection.join(channel)
+
+    self.reconnects = 0
  
   def on_join(self, connection, event):
     if connection != self.connection:
@@ -130,9 +142,21 @@ class IRCBot:
       self.debug("IRC: Incorrect connection in on_disconnect")
       return
 
-    self.debug("IRC: Disconnected. Reconnecting...")
     self.channels = []
-    self.connect()
+    self.reconnects += 1
+    self.debug("IRC: Disconnected. self.reconnects = %i" % self.reconnects)
+
+    proposed_wait = 2 ** self.reconnects
+    if proposed_wait < self.config.max_reconnect_wait:
+      self.debug("IRC: Sleeping for %i seconds" % proposed_wait)
+      time.sleep(proposed_wait)
+    else:
+      self.debug("IRC: Sleeping for %i seconds (max)" \
+          % self.config.max_reconnect_wait)
+      time.sleep(self.config.max_reconnect_wait)
+
+    self.debug("IRC: Slept; now raising ConnectionDeadException in order to reconnect...")
+    raise ConnectionDeadException
 
   def on_part(self, connection, event):
     if connection != self.connection:
@@ -145,3 +169,5 @@ class IRCBot:
     except:
       self.debug("IRC: Suppressed error: couldn't remove %s from self.channels" % event.target())
 
+class ConnectionDeadException(Exception):
+  pass

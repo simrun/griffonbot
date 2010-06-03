@@ -39,31 +39,30 @@ def format_tweet(tweet):
   url = "http://twitter.com/%s/status/%d" % (screenname, tweet["id"])
   return "%s [%s]" % (content, url)
 
-class ReconnectingTrackStream(tweetstream.ReconnectingTweetStream, \
-                              tweetstream.TrackStream):
-  def __init__(self, debug, username, password, keywords, url="track", \
-               max_reconnect_wait=60):
+class ReconnectingTrackStream(tweetstream.TrackStream):
+  def __init__(self, debug, username, password, keywords, max_reconnect_wait, \
+               url="track"):
     self.max_reconnect_wait = max_reconnect_wait
-    self._reconnects = 0
+    self.reconnects = 0
 
     self.keywords = keywords
 
     self.debug = debug
 
-    tweetstream.TweetStream.__init__(self, username, password, url=url)
+    tweetstream.TrackStream.__init__(self, username, password, keywords, url)
 
   def next(self):
     while True:
       try:
         data = tweetstream.TweetStream.next(self)
-        self._reconnects = 0
+        self.reconnects = 0
         return data
       except tweetstream.ConnectionError, e:
-        self._reconnects += 1
-        self.debug("Stream: Connection error; self._reconnects = %i" \
-	           % self._reconnects)
+        self.reconnects += 1
+        self.debug("Stream: Connection error; self.reconnects = %i" \
+	           % self.reconnects)
 
-        proposed_wait = 2 ** self._reconnects
+        proposed_wait = 2 ** self.reconnects
         if proposed_wait < self.max_reconnect_wait:
           self.debug("Stream: Sleeping for %i seconds" % proposed_wait)
           time.sleep(proposed_wait)
@@ -88,7 +87,8 @@ class Stream:
     self.debug("Stream: Running!")
 
     s = self.config
-    with ReconnectingTrackStream(self.debug, s.username, s.password, s.keywords) as stream:
+    with ReconnectingTrackStream(self.debug, s.username, s.password, \
+                                 s.keywords, s.max_reconnect_wait) as stream:
       for tweet in stream:
         for f in [ format_tweet, crush_whitespace, fix_entities, fix_unicode ]:
           tweet = f(tweet)
