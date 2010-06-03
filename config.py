@@ -19,6 +19,15 @@ class irc:
   realname = "Griffon Bot v0.1 http://github.com/ssb/griffonbot"
   channels = [ "##banter" ]
 
+  class flood:
+    wait = 1
+    queue_max = 10
+
+  @classmethod
+  def join_msg(self, action_callback):
+    action_callback("is %s" % irc.realname)
+    action_callback("is following: %s" % " ".join(twitter.keywords))
+
 class twitter:
   username = "griffonbot"
   password = ""

@@ -10,7 +10,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import Queue
 from threading import Thread
+import time
 
 import irclib
 
@@ -21,18 +23,59 @@ class IRCBot:
     self.irc = irclib.IRC();
     self.config = config
     self.debug = debug
+    self.queue = Queue.Queue()
 
     self.channels = []
 
   def start(self):
     self.debug("IRC: Starting...")
     Thread(target=self.main).start()
+    Thread(target=self.process_queue).start()
 
   def main(self):
     self.debug("IRC: Running!")
 
     self.connect()
     self.irc.process_forever()
+
+  def queue_action(self, act):
+    self.debug("IRC: queuing action message %s" % act)
+    self.message("\x01ACTION %s \x01" % act)
+
+  def queue_message(self, msg):
+    self.debug("IRC: queue.put() %s" % msg)
+    self.queue.put(msg)
+
+  def process_queue(self):
+    self.debug("IRC: Running (process_queue)!")
+
+    while True:
+      if self.queue.qsize() > self.config.flood.queue_max:
+        items = self.empty_queue()
+        self.debug("IRC: Dropping %i messages (flood)" % items)
+        self.queue_action("dropped %i messages in the name of flood-control" % items)
+
+      self.debug("IRC: waiting on queue.get...")
+      msg = self.queue.get()
+      self.debug("IRC: queue.get() got %s" % msg)
+      self.message(msg)
+
+      self.debug("IRC: flood.wait...")
+      time.sleep(self.config.flood.wait)
+
+  def empty_queue(self):
+    self.debug("IRC: Emptying queue...")
+    items = 0
+
+    try:
+      while True:
+        self.queue.get_nowait()
+        items = items + 1
+    except Queue.Empty:
+      pass
+
+    self.debug("IRC: Emptied %i items" % items)
+    return items
 
   def message(self, msg):
     self.debug("IRC: message() %s" % msg)
@@ -75,6 +118,8 @@ class IRCBot:
       debug("IRC: Suppressed error: %s is already in self.channels" % event.target())
     else:
       self.channels.append(event.target())
+
+    self.config.join_msg(self.queue_action)
 
   def on_disconnect(self, connection, event):
     if connection != self.connection:

@@ -22,7 +22,7 @@ def debug(s):
 def main():
   debug("Main: Setting up...")
   bot = IRCBot(config.irc, debug)
-  stream = Stream(config.twitter, bot.message, debug)
+  stream = Stream(config.twitter, bot.queue_message, debug)
 
   debug("Starting...")
   bot.start()
