@@ -6,19 +6,17 @@ reconnect to both its IRC server and the Twitter streaming server.
 
 The project is hosted at http://github.com/ssb/griffonbot
 
+GriffonBot was quickly hacked together by:
+ - Simrun Basuita <simrunbasuita@gmail.com>
+ - Daniel Richman <main@danielrichman.co.uk>
+
 = Instructions =================================================================
 
 1) Install dependencies:
    - python-irclib
    - tweetstream
-
 2) Edit the variables in ./config.py
 3) Run ./main.py
-
-= Authors ======================================================================
-
-Simrun Basuita <simrunbasuita@gmail.com>
-Daniel Richman <main@danielrichman.co.uk>
 
 = Legal ========================================================================
 
