@@ -67,7 +67,7 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
           self.debug("Stream: Sleeping for %i seconds" % proposed_wait)
           time.sleep(proposed_wait)
         else:
-          self.debug("Stream: Sleeping for %i seconds" \
+          self.debug("Stream: Sleeping for %i seconds (max)" \
 	             % self.max_reconnect_wait)
           time.sleep(self.max_reconnect_wait)
 
