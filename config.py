@@ -24,7 +24,10 @@ class mail:
 
   @classmethod
   def match(self, email):
-    return email.headers.sender == "ukhas@googlegroups.com"
+    if 'Sender' in email and email['Sender'] is "ukhas@googlegroups.com":
+      return True
+    else:
+      return False
 
   forward_nonmatching = "main@danielrichman.co.uk"
 
@@ -39,7 +42,7 @@ class irc:
   max_reconnect_wait = 60
 
   class flood:
-    wait = 3
+    wait = 1
     queue_max = 20
     queue_drop = 18
 
