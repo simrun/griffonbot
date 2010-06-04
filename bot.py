@@ -33,6 +33,8 @@ class IRCBot:
     self.reconnects = 0
     self.dead = threading.Event()
 
+    self.msglock = threading.Lock()
+
     self.channels = []
 
   def start(self):
@@ -116,12 +118,12 @@ class IRCBot:
       self.message(msg, channel)
 
   def message(self, msg, channel):
-    self.debug("IRC: message -> %s" % channel)
-    self.connection.privmsg(channel, msg)
+    with self.msglock.acquire() as msglock:
+      self.debug("IRC: message -> %s" % channel)
+      self.connection.privmsg(channel, msg)
 
-    self.debug("IRC: flood.wait...")
-    time.sleep(self.config.flood.wait)
-
+      self.debug("IRC: flood.wait...")
+      time.sleep(self.config.flood.wait)
  
   def connect(self):
     self.debug("IRC: Connecting")
