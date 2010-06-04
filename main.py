@@ -17,6 +17,7 @@ import sys
 from stream import Stream
 from bot import IRCBot
 from daemon import die
+from mail import Mail
 import config
 
 def debug(s):
@@ -26,16 +27,18 @@ def main():
   debug("Main: Setting up...")
   bot = IRCBot(config.irc, debug)
   stream = Stream(config.twitter, bot.queue_message, debug)
+  mail = Mail(config.mail, bot.queue_message, debug)
 
   debug("Main: Starting...")
   bot.start()
   stream.start()
+  mail.start()
 
   debug("Main: Now waiting...")
   die.wait()
 
   debug("Dead: Exiting...")
-  sys.exit()
+  sys.exit(1)
 
-
-main()
+if __name__ == "__main__":
+  main()

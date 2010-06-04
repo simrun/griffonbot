@@ -13,8 +13,20 @@
 class twitter:
   username = "griffonbot"
   password = ""
-  keywords = [ "bieber" ]
+  keywords = [ "#hab", "#arhab", "#ukhas" ]
   max_reconnect_wait = 60
+
+class mail:
+  imap_server = "imap.gmail.com"
+  username = "griffonbot@gmail.com"
+  password = ""
+  max_reconnect_wait = 60
+
+  @classmethod
+  def match(self, email):
+    return email.headers.sender == "ukhas@googlegroups.com":
+
+  forward_nonmatching = "main@danielrichman.co.uk"
 
 class irc:
   server   = "irc.freenode.net"
