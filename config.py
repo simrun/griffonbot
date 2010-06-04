@@ -24,7 +24,7 @@ class mail:
 
   @classmethod
   def match(self, email):
-    return email.headers.sender == "ukhas@googlegroups.com":
+    return email.headers.sender == "ukhas@googlegroups.com"
 
   forward_nonmatching = "main@danielrichman.co.uk"
 

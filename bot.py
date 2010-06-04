@@ -118,7 +118,7 @@ class IRCBot:
       self.message(msg, channel)
 
   def message(self, msg, channel):
-    with self.msglock.acquire() as msglock:
+    with self.msglock as msglock:
       self.debug("IRC: message -> %s" % channel)
       self.connection.privmsg(channel, msg)
 
