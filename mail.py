@@ -12,6 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import imaplib2
 from daemon import DaemonThread
 import threading
 
@@ -31,23 +32,29 @@ class Mail:
     self.debug("Mail: Starting...")
     DaemonThread(target=self.main).start()
 
+  def form_message(self, data):
+    body = data[0][1]
+    self.callback(body)
+
+  def process_mail(self, email, num, error):
+    type, data = email
+    form_message(self, data)
+
   def main(self):
     self.debug("Mail: Running!")
 
     while True:
-      try:
-        self.imap.setupandlogink()
+      self.imap = imaplib2.IMAP4_SSL(self.config.imap_server)
+      self.reconnects = 0
 
-        while True:
-          self.event.clear()
-          self.imap.idle(callback=self.event.set)
-          self.event.wait()
+      self.imap.login(self.config.username, self.config.password)
+      self.imap.examine("INBOX")
 
-          for email in self.imap.fetch_email():
-            if self.config.match(email):
-              make_a_message
-              self.callback(message)
-            else if self.config.forward:
-              forward_message_to(self.config.forward)
-      except SomeSortOfImapError:
-        exponential_waiting_from_stream.py. Also add a self.reconnects reset somewhere.
+      while True:
+        self.event.clear()
+        self.imap.idle(callback=self.event.set)
+        self.event.wait()
+
+        type, emails = imap.search(None, "ALL")
+        for num in emails:
+            imap.fetch(num, "(RFC822)", callback=self.process_mail, cb_arg=num)
