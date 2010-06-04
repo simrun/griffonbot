@@ -38,12 +38,12 @@ class Mail:
     message = "Email from %s: \"%s\"" % (mail['From'], mail['Subject'])
     self.callback(message)
 
-  def process_mail(self, data):
+  def process_mail(self, response):
     self.debug("Mail: Processing email...")
 
     try:
       # Unpack the monstrosity that was given to us...
-      data = str(data[1][0][1])
+      data = str(response[1][0][1])
     except:
       self.debug("Mail: Unpack failed.")
       return
