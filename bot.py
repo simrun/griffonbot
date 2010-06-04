@@ -75,6 +75,10 @@ class IRCBot:
       msg = self.queue.get()
       self.debug("IRC: queue.get() got %s" % msg)
 
+      #TODO Delay emptying of queue until have joined atleast one channel.
+      # Need to discuss this mechanic, or mailbox will be emptied into 
+      # emptiness when the program starts. This could be a good thing
+
       try:
         self.message_all(msg)
       except irclib.ServerNotConnectedError:

@@ -24,11 +24,15 @@ class mail:
 
   @classmethod
   def match(self, email):
+    # Providing the email account has joined the list, we can track find
+    # emails posted to this google groups by examining the Sender field.
     if 'Sender' in email and email['Sender'] is "ukhas@googlegroups.com":
       return True
     else:
-      return False
+      # TODO REMOVE DEBUG return False
+      return True
 
+  match_description = "to ukhas@googlegroups.com"
   forward_nonmatching = "main@danielrichman.co.uk"
 
 class irc:
@@ -50,3 +54,4 @@ class irc:
   def join_msg(self, con):
     con.action("is %s" % irc.realname)
     con.action("is following: %s" % " ".join(twitter.keywords))
+    con.action("is tracking emails %s" % mail.match_description)
