@@ -13,6 +13,7 @@
 # GNU General Public License for more details.
 
 import sys
+import time
 
 from stream import Stream
 from bot import IRCBot
@@ -21,7 +22,7 @@ from mail import Mail
 import config
 
 def debug(s):
-  sys.stderr.write("%s\n" % s)
+  sys.stderr.write("%s %s\n" % (time.strftime("%H:%M:%S"), s))
 
 def main():
   debug("Main: Setting up...")
