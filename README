@@ -13,8 +13,9 @@ GriffonBot was quickly hacked together by:
 = Instructions ================================================================
 
 1) Install dependencies:
-   - python-irclib
-   - tweetstream
+   - python-irclib (# aptitude install python-irclib)
+   - tweetstream (# easy_install tweetstream)
+   - imaplib2 (http://www.janeelix.com/piers/python/imaplib2.html)
 2) Edit the variables in ./config.py
 3) Run ./main.py
 
