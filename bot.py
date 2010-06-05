@@ -145,9 +145,12 @@ class IRCBot:
     self.connection.add_global_handler("welcome", self.on_connect)
     self.connection.add_global_handler("join", self.on_join)
     self.connection.add_global_handler("disconncet", self.on_disconnect)
+    self.connection.add_global_handler("kick", self.on_part)
+    self.connection.add_global_handler("part", self.on_part)
 
-    for event in [ "kick", "part" ]:
-      self.connection.add_global_handler(event, self.on_part);
+    #TODO: This Doesn't work
+    # self.connection.add_global_handler("nicknameinuse", self.on_disconnect)
+    # TODO Maybe program the bot to ghost itself?
 
   def on_connect(self, connection, event):
     if connection != self.connection:
