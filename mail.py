@@ -68,7 +68,7 @@ class Mail:
       self.reconnects = 0
 
       self.debug("Mail: Selecting INBOX")
-      self.imap.examine("INBOX")
+      self.imap.select("INBOX")
 
       waited = False
 
@@ -77,16 +77,17 @@ class Mail:
         type, emails = self.imap.search(None, "ALL")
 
         for num in emails[0].split(" "):
-          self.debug("Mail: Retrieving message %s..." % num)
-          response = self.imap.fetch(num, "(RFC822)")
+          if num:
+            self.debug("Mail: Retrieving message %s..." % num)
+            response = self.imap.fetch(num, "(RFC822)")
 
-          if waited:
-            # Don't dump our entire INBOX into callback().
-            # We only post messages after having imap.idle()d once
-            self.process_mail(response)
+            if waited:
+              # Don't dump our entire INBOX into callback().
+              # We only post messages after having imap.idle()d once
+              self.process_mail(response)
 
-          self.debug("Mail: Flagging %s for deletion..." % num)
-          self.imap.store(num, '+FLAGS', '\\Deleted')
+            self.debug("Mail: Flagging %s for deletion..." % num)
+            self.imap.store(num, '+FLAGS', '\\Deleted')
 
         self.debug("Mail: Now calling imap.expunge()...")
         self.imap.expunge()
