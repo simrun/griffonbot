@@ -34,10 +34,6 @@ class Mail:
     self.debug("Mail: Starting...")
     DaemonThread(target=self.main).start()
 
-  def announce_mail(self, mail):
-    message = "Email from %s: \"%s\"" % (mail['From'], mail['Subject'])
-    self.callback(message)
-
   def process_mail(self, response):
     self.debug("Mail: Processing email...")
 
@@ -52,15 +48,11 @@ class Mail:
 
     if self.config.match(mail):
       self.debug("Mail: Email matched.")
-      self.announce_mail(mail)
+
+      message = "Email from %s: \"%s\"" % (mail['From'], mail['Subject'])
+      self.callback(message)
     else:
-      self.debug("Mail: Email didn't match.")
-
-      if self.config.forward_nonmatching:
-        #TODO Forward it
-        pass
-
-    #TODO Delete it
+      self.debug("Mail: Email from %s didn't match." % mail['From'])
 
   def main(self):
     self.debug("Mail: Running!")
@@ -78,17 +70,31 @@ class Mail:
       self.debug("Mail: Selecting INBOX")
       self.imap.examine("INBOX")
 
+      waited = False
+
       while True:
         self.debug("Mail: Fetching emails...")
         type, emails = self.imap.search(None, "ALL")
 
         for num in emails[0].split(" "):
           self.debug("Mail: Retrieving message %s..." % num)
-          self.process_mail(self.imap.fetch(num, "(RFC822)"))
+          response = self.imap.fetch(num, "(RFC822)")
+
+          if waited:
+            # Don't dump our entire INBOX into callback().
+            # We only post messages after having imap.idle()d once
+            self.process_mail(response)
+
+          self.debug("Mail: Flagging %s for deletion..." % num)
+          self.imap.store(num, '+FLAGS', '\\Deleted')
+
+        self.debug("Mail: Now calling imap.expunge()...")
+        self.imap.expunge()
 
         self.debug("Mail: Now calling imap.idle() ... ")
         self.imap.idle()
 
-        self.debug("Mail: Wait over: looping - searching for messages...")
+        self.debug("Mail: Wait finished; now looping - searching for msgs...")
+        waited = True
 
       #TODO Wrap this stuff in a try: and implement reconnection

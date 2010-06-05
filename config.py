@@ -33,7 +33,6 @@ class mail:
       return True
 
   match_description = "to ukhas@googlegroups.com"
-  forward_nonmatching = "main@danielrichman.co.uk"
 
 class irc:
   server   = "irc.freenode.net"
