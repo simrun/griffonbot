@@ -75,10 +75,6 @@ class IRCBot:
       msg = self.queue.get()
       self.debug("IRC: queue.get() got %s" % msg)
 
-      #TODO Delay emptying of queue until have joined atleast one channel.
-      # Need to discuss this mechanic, or mailbox will be emptied into 
-      # emptiness when the program starts. This could be a good thing
-
       try:
         self.message_all(msg)
       except irclib.ServerNotConnectedError:
@@ -147,10 +143,6 @@ class IRCBot:
     self.connection.add_global_handler("disconncet", self.on_disconnect)
     self.connection.add_global_handler("kick", self.on_part)
     self.connection.add_global_handler("part", self.on_part)
-
-    #TODO: This Doesn't work
-    # self.connection.add_global_handler("nicknameinuse", self.on_disconnect)
-    # TODO Maybe program the bot to ghost itself?
 
   def on_connect(self, connection, event):
     if connection != self.connection:

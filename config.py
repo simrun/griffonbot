@@ -29,8 +29,7 @@ class mail:
     if 'Sender' in email and email['Sender'] is "ukhas@googlegroups.com":
       return True
     else:
-      # TODO REMOVE DEBUG return False
-      return True
+      return False
 
   match_description = "to ukhas@googlegroups.com"
 
