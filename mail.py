@@ -46,13 +46,14 @@ class Mail:
 
     mail = email.message_from_string(data)
 
+    message = "Email from %s: \"%s\"" % (mail['From'], mail['Subject'])
+    self.debug("Mail: Parsed email: %s" % message)
+
     if self.config.match(mail):
       self.debug("Mail: Email matched.")
-
-      message = "Email from %s: \"%s\"" % (mail['From'], mail['Subject'])
       self.callback(message)
     else:
-      self.debug("Mail: Email from %s didn't match." % mail['From'])
+      self.debug("Mail: Email from didn't match.")
 
   def main(self):
     self.debug("Mail: Running!")

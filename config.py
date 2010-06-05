@@ -22,15 +22,7 @@ class mail:
   password = ""
   max_reconnect_wait = 60
 
-  @classmethod
-  def match(self, email):
-    # Providing the email account has joined the list, we can track find
-    # emails posted to this google groups by examining the Sender field.
-    if 'Sender' in email and email['Sender'] is "ukhas@googlegroups.com":
-      return True
-    else:
-      return False
-
+  match = lambda email: email['To'] is "ukhas@googlegroups.com"
   match_description = "to ukhas@googlegroups.com"
 
 class irc:
