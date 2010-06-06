@@ -160,6 +160,11 @@ class IRCBot:
       self.debug("IRC: Incorrect connection in on_join")
       return
 
+    if event.source().split("!")[0] != self.config.nick:
+      self.debug("IRC: Discarded wrong nick JOIN %s %s" % 
+                         (event.source(), event.target()))
+      return
+
     self.debug("IRC: Joined channel %s" % event.target())
 
     if event.target() in self.channels:
@@ -196,7 +201,13 @@ class IRCBot:
       self.debug("IRC: Incorrect connection in on_part")
       return
 
+    if event.source().split("!")[0] != self.config.nick:
+      self.debug("IRC: Discarded wrong nick PART %s %s" % 
+                         (event.source(), event.target()))
+      return
+
     self.debug("IRC: Left %s" % event.target())
+
     try:
       self.channels.remove(event.target())
     except:
