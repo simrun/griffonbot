@@ -15,10 +15,14 @@
 from daemon import DaemonThread
 import threading
 import email
+import traceback
 
 import imaplib2
 
 import time
+
+class SrsError(Exception):
+  pass
 
 class Mail:
   def __init__(self, config, callback, debug):
@@ -59,44 +63,69 @@ class Mail:
     self.debug("Mail: Running!")
 
     while True:
-      self.debug("Mail: Connecting to IMAP server...")
-      self.imap = imaplib2.IMAP4_SSL(self.config.imap_server)
+      try:
+        self.debug("Mail: Connecting to IMAP server...")
+        self.imap = imaplib2.IMAP4_SSL(self.config.imap_server)
 
-      self.debug("Mail: Logging in...")
-      self.imap.login(self.config.username, self.config.password)
+        self.debug("Mail: Logging in...")
 
-      self.debug("Mail: Success")
-      self.reconnects = 0
+        try:
+          self.imap.login(self.config.username, self.config.password)
+        except self.imap.abort:
+          # Don't catch errors for this stage >_<
+          self.debug("".join(traceback.format_exc()))
+          raise SrsError()
 
-      self.debug("Mail: Selecting INBOX")
-      self.imap.select("INBOX")
+        self.debug("Mail: Success")
+        self.reconnects = 0
 
-      waited = False
+        self.debug("Mail: Selecting INBOX")
+        self.imap.select("INBOX")
 
-      while True:
-        self.debug("Mail: Fetching emails...")
-        type, emails = self.imap.search(None, "ALL")
+        waited = False
+        self.reconnects = 0
 
-        for num in emails[0].split(" "):
-          if num:
-            self.debug("Mail: Retrieving message %s..." % num)
-            response = self.imap.fetch(num, "(RFC822)")
+        while True:
+          self.debug("Mail: Fetching emails...")
+          type, emails = self.imap.search(None, "ALL")
 
-            if waited:
-              # Don't dump our entire INBOX into callback().
-              # We only post messages after having imap.idle()d once
-              self.process_mail(response)
+          for num in emails[0].split(" "):
+            if num:
+              self.debug("Mail: Retrieving message %s..." % num)
+              response = self.imap.fetch(num, "(RFC822)")
 
-            self.debug("Mail: Flagging %s for deletion..." % num)
-            self.imap.store(num, '+FLAGS', '\\Deleted')
+              if waited:
+                # Don't dump our entire INBOX into callback().
+                # We only post messages after having imap.idle()d once
+                self.process_mail(response)
 
-        self.debug("Mail: Now calling imap.expunge()...")
-        self.imap.expunge()
+              self.debug("Mail: Flagging %s for deletion..." % num)
+              self.imap.store(num, '+FLAGS', '\\Deleted')
 
-        self.debug("Mail: Now calling imap.idle() ... ")
-        self.imap.idle()
+          self.debug("Mail: Now calling imap.expunge()...")
+          self.imap.expunge()
 
-        self.debug("Mail: Wait finished; now looping - searching for msgs...")
-        waited = True
+          self.debug("Mail: Now calling imap.idle() ... ")
+          self.imap.idle()
 
-      #TODO Wrap this stuff in a try: and implement reconnection
+          self.debug("Mail: Wait finished; now looping - searching for msgs...")
+          waited = True
+
+      except SrsError:
+        raise
+
+      except self.imap.abort:
+        self.debug("Mail: Error caught:")
+        self.debug("".join(traceback.format_exc()))
+
+        self.reconnects += 1
+        self.debug("Mail: Reconnects is %i" % self.reconnects)
+
+        proposed_wait = 2 ** self.reconnects
+        if proposed_wait < self.config.max_reconnect_wait:
+          self.debug("Mail: Sleeping for %i seconds" % proposed_wait)
+          time.sleep(proposed_wait)
+        else:
+          self.debug("Mail: Sleeping for %i seconds (max)" \
+	             % self.config.max_reconnect_wait)
+          time.sleep(self.config.max_reconnect_wait)
