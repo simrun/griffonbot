@@ -13,7 +13,7 @@
 class twitter:
   username = "griffonbot"
   password = ""
-  keywords = [ "#hab", "#arhab", "#ukhas" ]
+  keywords = [ "#arhab", "#ukhas", "#cusf" ]
   max_reconnect_wait = 60
 
 class mail:
