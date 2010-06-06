@@ -16,6 +16,7 @@ from daemon import DaemonThread
 import threading
 import email
 import traceback
+import socket
 
 import imaplib2
 
@@ -71,7 +72,7 @@ class Mail:
 
         try:
           self.imap.login(self.config.username, self.config.password)
-        except self.imap.abort:
+        except imaplib2.IMAP4.abort:
           # Don't catch errors for this stage >_<
           self.debug("".join(traceback.format_exc()))
           raise SrsError()
@@ -114,7 +115,7 @@ class Mail:
       except SrsError:
         raise
 
-      except self.imap.abort:
+      except (imaplib2.IMAP4.abort, socket.error):
         self.debug("Mail: Error caught:")
         self.debug("".join(traceback.format_exc()))
 
