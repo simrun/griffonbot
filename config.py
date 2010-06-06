@@ -23,7 +23,7 @@ class mail:
   max_reconnect_wait = 60
 
   match = lambda email: email['To'] is "ukhas@googlegroups.com"
-  match_description = "to ukhas@googlegroups.com"
+  match_description = "emails sent to ukhas@googlegroups.com"
 
 class irc:
   server   = "irc.freenode.net"
@@ -44,4 +44,4 @@ class irc:
   def join_msg(self, con):
     con.action("is %s" % irc.realname)
     con.action("is following: %s" % " ".join(twitter.keywords))
-    con.action("is tracking emails %s" % mail.match_description)
+    con.action("is tracking %s" % mail.match_description)
