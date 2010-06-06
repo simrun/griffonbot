@@ -66,6 +66,7 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
         self.reconnects += 1
         self.debug("Stream: Connection error; self.reconnects = %i" \
 	           % self.reconnects)
+        self.debug("".join(traceback.format_exc()))
 
         proposed_wait = 2 ** self.reconnects
         if proposed_wait < self.max_reconnect_wait:

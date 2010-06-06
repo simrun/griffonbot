@@ -15,6 +15,7 @@ import Queue
 from daemon import DaemonThread
 import time
 import threading
+import traceback
 
 import irclib
 
@@ -59,6 +60,7 @@ class IRCBot:
 
       except irclib.ServerNotConnectedError:
         self.debug("IRC: Caught irclib.ServerNotConnectedError; restarting...")
+        self.debug("".join(traceback.format_exc()))
         self.channels = []
 
   def queue_message(self, msg):
@@ -80,6 +82,7 @@ class IRCBot:
       except irclib.ServerNotConnectedError:
         self.debug("IRC: Got error when trying to send message. "
                    "Clearing channels")
+        self.debug("".join(traceback.format_exc()))
         self.debug("IRC: process_queue() thread setting dead")
         self.channels = []
         self.dead.set()
@@ -136,7 +139,10 @@ class IRCBot:
       self.connection.connect(s.server, s.port, s.nick, s.password, s.user, \
                               s.realname)
     except irclib.ServerConnectionError:
+      self.debug("Error whilst connecting...")
+      self.debug("".join(traceback.format_exc()))
       self.on_disconnect(self.connection, None)
+
 
     self.connection.add_global_handler("welcome", self.on_connect)
     self.connection.add_global_handler("join", self.on_join)
@@ -213,6 +219,7 @@ class IRCBot:
     except:
       self.debug("IRC: Suppressed error: couldn't remove %s from " \
                  "self.channels" % event.target())
+      self.debug("".join(traceback.format_exc()))
 
 class JoinMessageConnection():
   def __init__(self, bot, channel):

@@ -11,12 +11,14 @@
 # GNU General Public License for more details.
 
 class twitter:
+  enable = True
   username = "griffonbot"
   password = ""
   keywords = [ "#arhab", "#ukhas", "#cusf" ]
   max_reconnect_wait = 60
 
 class mail:
+  enable = True
   imap_server = "imap.gmail.com"
   username = "griffonbot@gmail.com"
   password = ""
