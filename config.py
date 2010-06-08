@@ -45,5 +45,9 @@ class irc:
   @classmethod
   def join_msg(self, con):
     con.action("is %s" % irc.realname)
-    con.action("is following: %s" % " ".join(twitter.keywords))
-    con.action("is tracking %s" % mail.match_description)
+
+    if twitter.enable:
+      con.action("is following: %s" % " ".join(twitter.keywords))
+
+    if mail.enable:
+      con.action("is tracking %s" % mail.match_description)
