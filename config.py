@@ -24,7 +24,7 @@ class mail:
   password = ""
   max_reconnect_wait = 60
 
-  match = classmethod(lambda s,e: email['To'] is "ukhas@googlegroups.com")
+  match = classmethod(lambda s,e: e['To'] is "ukhas@googlegroups.com")
   match_description = "emails sent to ukhas@googlegroups.com"
 
 class irc:

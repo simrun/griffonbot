@@ -58,7 +58,7 @@ class Mail:
       self.debug("Mail: Email matched.")
       self.callback(message)
     else:
-      self.debug("Mail: Email from didn't match.")
+      self.debug("Mail: Email didn't match.")
 
   def main(self):
     self.debug("Mail: Running!")
