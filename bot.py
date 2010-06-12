@@ -115,14 +115,14 @@ class IRCBot:
                                       (items, size)))
 
   def message_all(self, msg):
-    self.log.debug("IRC: message() %s" % msg)
+    self.log.debug("IRC: message_all() %s" % msg)
 
     for channel in self.channels:
       self.message(msg, channel)
 
   def message(self, msg, channel):
     with self.msglock as msglock:
-      self.log.info("IRC: message -> %s" % channel)
+      self.log.info("IRC: message -> %s '%s'" % (channel, msg))
       self.connection.privmsg(channel, msg)
 
       self.log.debug("IRC: flood.wait...")
