@@ -21,7 +21,7 @@ ERROR  = (3, "Error ")
 class Log:
   def __init__(self, config):
     self.config = config
-    self.file = open(self.config.filename, "a")
+    self.file = open(self.config.filename, "a", 1)
 
   def msg(self, level, str):
     str = str.strip()
