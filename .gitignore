@@ -1,3 +1,4 @@
 *.pyc
 *.swp
 imaplib2.py
+griffonbot.log
