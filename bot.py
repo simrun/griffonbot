@@ -59,7 +59,8 @@ class IRCBot:
             raise irclib.ServerNotConnectedError
 
       except irclib.ServerNotConnectedError:
-        self.log.debug("IRC: Caught irclib.ServerNotConnectedError; restarting...")
+        self.log.debug("IRC: Caught irclib.ServerNotConnectedError; " \
+                       "restarting...")
         self.log.debug("".join(traceback.format_exc()))
         self.channels = []
 
@@ -187,7 +188,8 @@ class IRCBot:
 
     self.channels = []
     self.reconnects += 1
-    self.log.notice("IRC: Disconnected. self.reconnects = %i" % self.reconnects)
+    self.log.notice("IRC: Disconnected. self.reconnects = %i" % \
+                    "self.reconnects)
 
     proposed_wait = 2 ** self.reconnects
     if proposed_wait < self.config.max_reconnect_wait:

@@ -109,7 +109,8 @@ class Mail:
           self.log.debug("Mail: Now calling imap.idle() ... ")
           self.imap.idle()
 
-          self.log.debug("Mail: Wait finished; now looping - searching for msgs...")
+          self.log.debug("Mail: Wait finished; now looping - " \
+                         "searching for msgs...")
           waited = True
 
       except SrsError:
