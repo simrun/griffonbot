@@ -22,6 +22,7 @@ from mail import Mail
 import config
 
 def main():
+  sys.stderr.write("Griffonbot starting up...\n")
   log = Log(config.log)
 
   log.debug("Main: Setting up...")

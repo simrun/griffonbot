@@ -22,11 +22,13 @@ class Log:
   def __init__(self, config):
     self.config = config
     self.file = open(self.config.filename, "a", 1)
+    self.file.write("Griffonbot starting up: log began at %s\n" % \
+                    time.strftime("%H:%M:%S", time.gmtime()))
 
   def msg(self, level, str):
     str = str.strip()
 
-    header = "%s %s" % (time.strftime("%H:%M:%S"), level[1])
+    header = "%s %s" % (time.strftime("%H:%M:%S", time.gmtime()), level[1])
 
     for line in str.splitlines():
       message = "%s %s\n" % (header, line)
