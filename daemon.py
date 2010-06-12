@@ -17,13 +17,15 @@ import traceback
 die = threading.Event()
 
 class DaemonThread(threading.Thread):
-  def start(self):
+  def __init__(self, log, **kwargs):
+    super(DaemonThread, self).__init__(**kwargs)
+    self.log = log
     self.daemon = True
-    super(DaemonThread, self).start()
 
   def run(self):
     try:
       super(DaemonThread, self).run()
     except:
-      traceback.print_exc(file=sys.stderr)
+      self.log.error("".join(traceback.format_exc()))
+      self.log.info("DaemonThread: Setting 'die' flag to kill process.")
       die.set()

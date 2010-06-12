@@ -10,8 +10,15 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+from log import DEBUG, INFO, NOTICE, ERROR
+
+class log:
+  filename = "griffonbot.log"
+  file     = DEBUG
+  stderr   = INFO
+
 class twitter:
-  enable = True
+  enable = False
   username = "griffonbot"
   password = ""
   keywords = [ "#arhab", "#ukhas", "#cusf" ]

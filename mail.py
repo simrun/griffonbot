@@ -26,73 +26,73 @@ class SrsError(Exception):
   pass
 
 class Mail:
-  def __init__(self, config, callback, debug):
-    debug("Mail: Setting up...")
+  def __init__(self, config, callback, log):
+    log.debug("Mail: Setting up...")
 
     self.config = config
     self.callback = callback
-    self.debug = debug
+    self.log = log
 
     self.reconnects = 0
 
   def start(self):
-    self.debug("Mail: Starting...")
-    DaemonThread(target=self.main).start()
+    self.log.debug("Mail: Starting...")
+    DaemonThread(self.log, target=self.main).start()
 
   def process_mail(self, response):
-    self.debug("Mail: Processing email...")
+    self.log.debug("Mail: Processing email...")
 
     try:
       # Unpack the monstrosity that was given to us...
       data = str(response[1][0][1])
     except:
-      self.debug("Mail: Unpack failed.")
+      self.log.notice("Mail: Unpack failed.")
       return
 
     mail = email.message_from_string(data)
 
     message = "Email from %s: \"%s\"" % (mail['From'], mail['Subject'])
-    self.debug("Mail: Parsed email: %s" % message)
+    self.log.debug("Mail: Parsed email: %s" % message)
 
     if self.config.match(mail):
-      self.debug("Mail: Email matched.")
+      self.log.debug("Mail: Email matched.")
       self.callback(message)
     else:
-      self.debug("Mail: Email didn't match.")
+      self.log.notice("Mail: Email didn't match.")
 
   def main(self):
-    self.debug("Mail: Running!")
+    self.log.debug("Mail: Running!")
 
     while True:
       try:
-        self.debug("Mail: Connecting to IMAP server...")
+        self.log.debug("Mail: Connecting to IMAP server...")
         self.imap = imaplib2.IMAP4_SSL(self.config.imap_server)
 
-        self.debug("Mail: Logging in...")
+        self.log.debug("Mail: Logging in...")
 
         try:
           self.imap.login(self.config.username, self.config.password)
         except imaplib2.IMAP4.abort:
           # Don't catch errors for this stage >_<
-          self.debug("".join(traceback.format_exc()))
+          self.log.error("".join(traceback.format_exc()))
           raise SrsError()
 
-        self.debug("Mail: Success")
+        self.log.debug("Mail: Success")
         self.reconnects = 0
 
-        self.debug("Mail: Selecting INBOX")
+        self.log.debug("Mail: Selecting INBOX")
         self.imap.select("INBOX")
 
         waited = False
         self.reconnects = 0
 
         while True:
-          self.debug("Mail: Fetching emails...")
+          self.log.debug("Mail: Fetching emails...")
           type, emails = self.imap.search(None, "ALL")
 
           for num in emails[0].split(" "):
             if num:
-              self.debug("Mail: Retrieving message %s..." % num)
+              self.log.debug("Mail: Retrieving message %s..." % num)
               response = self.imap.fetch(num, "(RFC822)")
 
               if waited:
@@ -100,33 +100,33 @@ class Mail:
                 # We only post messages after having imap.idle()d once
                 self.process_mail(response)
 
-              self.debug("Mail: Flagging %s for deletion..." % num)
+              self.log.debug("Mail: Flagging %s for deletion..." % num)
               self.imap.store(num, '+FLAGS', '\\Deleted')
 
-          self.debug("Mail: Now calling imap.expunge()...")
+          self.log.debug("Mail: Now calling imap.expunge()...")
           self.imap.expunge()
 
-          self.debug("Mail: Now calling imap.idle() ... ")
+          self.log.debug("Mail: Now calling imap.idle() ... ")
           self.imap.idle()
 
-          self.debug("Mail: Wait finished; now looping - searching for msgs...")
+          self.log.debug("Mail: Wait finished; now looping - searching for msgs...")
           waited = True
 
       except SrsError:
         raise
 
       except (imaplib2.IMAP4.abort, socket.error):
-        self.debug("Mail: Error caught:")
-        self.debug("".join(traceback.format_exc()))
+        self.log.notice("Mail: Error caught:")
+        self.log.info("".join(traceback.format_exc()))
 
         self.reconnects += 1
-        self.debug("Mail: Reconnects is %i" % self.reconnects)
+        self.log.info("Mail: Reconnects is %i" % self.reconnects)
 
         proposed_wait = 2 ** self.reconnects
         if proposed_wait < self.config.max_reconnect_wait:
-          self.debug("Mail: Sleeping for %i seconds" % proposed_wait)
+          self.log.info("Mail: Sleeping for %i seconds" % proposed_wait)
           time.sleep(proposed_wait)
         else:
-          self.debug("Mail: Sleeping for %i seconds (max)" \
+          self.log.info("Mail: Sleeping for %i seconds (max)" \
 	             % self.config.max_reconnect_wait)
           time.sleep(self.config.max_reconnect_wait)

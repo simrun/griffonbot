@@ -44,14 +44,14 @@ def format_tweet(tweet):
   return "%s [%s]" % (content, url)
 
 class ReconnectingTrackStream(tweetstream.TrackStream):
-  def __init__(self, debug, username, password, keywords, max_reconnect_wait, \
+  def __init__(self, log, username, password, keywords, max_reconnect_wait, \
                url="track"):
     self.max_reconnect_wait = max_reconnect_wait
     self.reconnects = 0
 
     self.keywords = keywords
 
-    self.debug = debug
+    self.log = log
 
     super(ReconnectingTrackStream, self).__init__(username, password, \
                                                   keywords, url)
@@ -64,41 +64,41 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
         return data
       except tweetstream.ConnectionError, e:
         self.reconnects += 1
-        self.debug("Stream: Connection error; self.reconnects = %i" \
+        self.log.notice("Stream: Connection error; self.reconnects = %i" \
 	           % self.reconnects)
-        self.debug("".join(traceback.format_exc()))
+        self.log.info("".join(traceback.format_exc()))
 
         proposed_wait = 2 ** self.reconnects
         if proposed_wait < self.max_reconnect_wait:
-          self.debug("Stream: Sleeping for %i seconds" % proposed_wait)
+          self.log.info("Stream: Sleeping for %i seconds" % proposed_wait)
           time.sleep(proposed_wait)
         else:
-          self.debug("Stream: Sleeping for %i seconds (max)" \
+          self.log.info("Stream: Sleeping for %i seconds (max)" \
 	             % self.max_reconnect_wait)
           time.sleep(self.max_reconnect_wait)
 
 class Stream:
-  def __init__(self, config, callback, debug):
-    debug("Stream: Setting up...")
+  def __init__(self, config, callback, log):
+    log.debug("Stream: Setting up...")
 
     self.config = config
     self.callback = callback
-    self.debug = debug
+    self.log = log
 
   def start(self):
-    self.debug("Stream: Starting...")
-    DaemonThread(target=self.main).start()
+    self.log.debug("Stream: Starting...")
+    DaemonThread(self.log, target=self.main).start()
 
   def main(self):
-    self.debug("Stream: Running!")
+    self.log.debug("Stream: Running!")
 
     s = self.config
-    with ReconnectingTrackStream(self.debug, s.username, s.password, \
+    with ReconnectingTrackStream(self.log, s.username, s.password, \
                                  s.keywords, s.max_reconnect_wait) as stream:
       for tweet in stream:
         for f in [ format_tweet, crush_whitespace, fix_entities, fix_unicode ]:
           tweet = f(tweet)
 
-        self.debug("Stream: Pushing Tweet %s" % tweet)
+        self.log.debug("Stream: Pushing Tweet %s" % tweet)
         self.callback(tweet)
 

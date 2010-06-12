@@ -13,28 +13,27 @@
 # GNU General Public License for more details.
 
 import sys
-import time
 
+from log import Log
 from stream import Stream
 from bot import IRCBot
 from daemon import die
 from mail import Mail
 import config
 
-def debug(s):
-  sys.stderr.write("%s %s\n" % (time.strftime("%H:%M:%S"), s))
-
 def main():
-  debug("Main: Setting up...")
-  bot = IRCBot(config.irc, debug)
+  log = Log(config.log)
+
+  log.debug("Main: Setting up...")
+  bot = IRCBot(config.irc, log)
 
   if config.twitter.enable:
-    stream = Stream(config.twitter, bot.queue_message, debug)
+    stream = Stream(config.twitter, bot.queue_message, log)
 
   if config.mail.enable:
-    mail = Mail(config.mail, bot.queue_message, debug)
+    mail = Mail(config.mail, bot.queue_message, log)
 
-  debug("Main: Starting...")
+  log.info("Main: Starting...")
   bot.start()
 
   if config.twitter.enable:
@@ -43,10 +42,10 @@ def main():
   if config.mail.enable:
     mail.start()
 
-  debug("Main: Now waiting...")
+  log.debug("Main: Now waiting...")
   die.wait()
 
-  debug("Dead: Exiting...")
+  log.notice("Dead: Exiting...")
   sys.exit(1)
 
 if __name__ == "__main__":
