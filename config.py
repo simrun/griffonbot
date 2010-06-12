@@ -18,7 +18,7 @@ class log:
   stderr   = INFO
 
 class twitter:
-  enable = False
+  enable = True
   username = "griffonbot"
   password = ""
   keywords = [ "#arhab", "#ukhas", "#cusf" ]
