@@ -62,6 +62,7 @@ class Mail:
 
   def main(self):
     self.log.debug("Mail: Running!")
+    waited = False
 
     while True:
       try:
@@ -83,7 +84,6 @@ class Mail:
         self.log.debug("Mail: Selecting INBOX")
         self.imap.select("INBOX")
 
-        waited = False
         self.reconnects = 0
 
         while True:
