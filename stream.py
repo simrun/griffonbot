@@ -13,6 +13,7 @@
 import sys
 import time
 import re
+import traceback
 from daemon import DaemonThread
 import unicodedata
 from xml.sax import saxutils
