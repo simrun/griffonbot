@@ -51,7 +51,7 @@ class Mail:
 
     mail = email.message_from_string(data)
 
-    message = "Email from %s: \"%s\"" % (mail['From'], mail['Subject'])
+    message = "Received email: %s \"%s\"" % (mail['From'], mail['Subject'])
     self.log.debug("Mail: Parsed email: %s" % message)
 
     if self.config.match(mail):
