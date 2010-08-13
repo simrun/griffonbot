@@ -19,6 +19,7 @@ from stream import Stream
 from bot import IRCBot
 from daemon import die
 from mail import Mail
+from stdin import Stdin
 import config
 
 def main():
@@ -34,6 +35,9 @@ def main():
   if config.mail.enable:
     mail = Mail(config.mail, bot.queue_message, log)
 
+  if config.stdin.enable:
+    stdin = Stdin(config.stdin, bot.queue_message, log)
+
   log.info("Main: Starting...")
   bot.start()
 
@@ -42,6 +46,9 @@ def main():
 
   if config.mail.enable:
     mail.start()
+
+  if config.stdin.enable:
+    stdin.start()
 
   log.debug("Main: Now waiting...")
   die.wait()

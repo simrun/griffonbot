@@ -41,7 +41,7 @@ class irc:
   password = ""
   user     = "griffonbot"
   realname = "GriffonBot [http://github.com/ssb/griffonbot]"
-  channels = [ "#griffonbot", "##banter99" ]
+  channels = [ "#griffonbot" ]
   max_reconnect_wait = 60
 
   class flood:
@@ -58,3 +58,6 @@ class irc:
 
     if mail.enable:
       con.action("is tracking %s" % mail.match_description)
+
+class stdin:
+  enable = True
