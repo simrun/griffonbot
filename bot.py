@@ -189,7 +189,7 @@ class IRCBot:
     self.channels = []
     self.reconnects += 1
     self.log.notice("IRC: Disconnected. self.reconnects = %i" % \
-                    "self.reconnects")
+                    self.reconnects)
 
     proposed_wait = 2 ** self.reconnects
     if proposed_wait < self.config.max_reconnect_wait:
