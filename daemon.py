@@ -13,6 +13,7 @@
 import sys
 import threading
 import traceback
+import signal
 
 die = threading.Event()
 
@@ -29,3 +30,8 @@ class DaemonThread(threading.Thread):
       self.log.error("".join(traceback.format_exc()))
       self.log.info("DaemonThread: Setting 'die' flag to kill process.")
       die.set()
+
+def immediate_death(a, b):
+  die.set()
+
+signal.signal(signal.SIGINT, immediate_death)
