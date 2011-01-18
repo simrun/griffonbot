@@ -19,6 +19,19 @@ import traceback
 
 import irclib
 
+# Wooo! Monkey patchz!
+
+class NewIRC(irclib.IRC):
+  def __init__(self):
+    irclib.IRC.__init__(self)
+    self.delayed_commands_lock = threading.RLock()
+  def process_timeout(self):
+    with self.delayed_commands_lock:
+      irclib.IRC.process_timeout(self)
+  def execute_delayed(self, *args):
+    with self.delayed_commands_lock:
+      irclib.IRC.execute_delayed(self, *args)
+
 def action_message(act):
   return "\x01ACTION %s \x01" % act
 
@@ -26,15 +39,14 @@ class IRCBot:
   def __init__(self, config, log):
     log.debug("IRC: Setting up...")
 
-    self.irc = irclib.IRC();
+    self.irc = NewIRC();
     self.config = config
     self.log = log
     self.queue = Queue.Queue()
 
     self.reconnects = 0
-    self.dead = threading.Event()
-
-    self.msglock = threading.Lock()
+    self.reconnecting = False
+    self.ping_reply = True
 
     self.channels = []
 
@@ -46,23 +58,13 @@ class IRCBot:
   def main(self):
     self.log.debug("IRC: Running!")
 
+    self.connect()
+
+    self.log.debug("IRC: Queuing first ping-pong.")
+    self.irc.execute_delayed(60, self.ping_pong)
+
     while True:
-      try:
-        self.connect()
-
-        while True:
-          self.irc.process_once(1)
-
-          if self.dead.isSet():
-            self.log.debug("IRC: process_queue thread says it's dead.")
-            self.dead.clear()
-            raise irclib.ServerNotConnectedError
-
-      except irclib.ServerNotConnectedError:
-        self.log.debug("IRC: Caught irclib.ServerNotConnectedError; " \
-                       "restarting...")
-        self.log.debug("".join(traceback.format_exc()))
-        self.channels = []
+      self.irc.process_once(1)
 
   def queue_message(self, msg):
     self.log.debug("IRC: queue.put() %s" % msg)
@@ -78,16 +80,7 @@ class IRCBot:
       msg = self.queue.get()
       self.log.debug("IRC: queue.get() got %s" % msg)
 
-      try:
-        self.message_all(msg)
-      except irclib.ServerNotConnectedError:
-        self.log.notice("IRC: Got error when trying to send message. "
-                   "Clearing channels")
-        self.log.info("".join(traceback.format_exc()))
-        self.log.debug("IRC: process_queue() thread setting dead")
-        self.channels = []
-        self.dead.set()
-
+      self.message_all(msg)
 
   def regulate_queue(self):
     self.log.debug("IRC: Examining Queue...")
@@ -116,20 +109,24 @@ class IRCBot:
                                       (items, size)))
 
   def message_all(self, msg):
+    self.irc.execute_delayed(0, self.do_message_all, (msg, ))
+
+  def do_message_all(self, msg):
     self.log.debug("IRC: message_all() %s" % msg)
 
     for channel in self.channels:
       self.message(msg, channel)
 
   def message(self, msg, channel):
-    with self.msglock as msglock:
-      self.log.info("IRC: message -> %s '%s'" % (channel, msg))
-      self.connection.privmsg(channel, msg)
+    self.log.info("IRC: message -> %s '%s'" % (channel, msg))
+    self.connection.privmsg(channel, msg)
 
-      self.log.debug("IRC: flood.wait...")
-      time.sleep(self.config.flood.wait)
+    self.log.debug("IRC: flood.wait...")
+    time.sleep(self.config.flood.wait)
  
   def connect(self):
+    self.reconnecting = False
+
     self.log.debug("IRC: Connecting")
 
     s = self.config
@@ -142,14 +139,14 @@ class IRCBot:
     except irclib.ServerConnectionError:
       self.log.notice("IRC: Error whilst connecting...")
       self.log.info("".join(traceback.format_exc()))
-      self.on_disconnect(self.connection, None)
-
+      self.reconnect()
 
     self.connection.add_global_handler("welcome", self.on_connect)
     self.connection.add_global_handler("join", self.on_join)
-    self.connection.add_global_handler("disconncet", self.on_disconnect)
     self.connection.add_global_handler("kick", self.on_part)
+    self.connection.add_global_handler("disconnect", self.on_disconnect)
     self.connection.add_global_handler("part", self.on_part)
+    self.connection.add_global_handler("pong", self.on_pong)
 
   def on_connect(self, connection, event):
     if connection != self.connection:
@@ -186,23 +183,34 @@ class IRCBot:
       self.log.info("IRC: Incorrect connection in on_disconnect")
       return
 
+    self.reconnect()
+
+  def reconnect(self):
+    if self.reconnecting:
+      self.log.debug("IRC: Avoiding recursion in reconnect()")
+      return
+
+    self.reconnecting = True
+
+    self.log.notice("IRC: reconnect(): disconnecting all")
+    try:
+      self.irc.disconnect_all()
+    except:
+      self.log.notice("IRC: Suppressed error while disconnecting all")
+      self.log.info("".join(traceback.format_exc()))
+
     self.channels = []
     self.reconnects += 1
     self.log.notice("IRC: Disconnected. self.reconnects = %i" % \
                     self.reconnects)
 
     proposed_wait = 2 ** self.reconnects
-    if proposed_wait < self.config.max_reconnect_wait:
-      self.log.info("IRC: Sleeping for %i seconds" % proposed_wait)
-      time.sleep(proposed_wait)
-    else:
-      self.log.info("IRC: Sleeping for %i seconds (max)" \
-          % self.config.max_reconnect_wait)
-      time.sleep(self.config.max_reconnect_wait)
+    if proposed_wait > self.config.max_reconnect_wait:
+      self.log.info("IRC: Capping reconnect sleep at max")
+      proposed_wait = self.config.max_reconnect_wait
 
-    self.log.debug("IRC: Slept; now raising irclib.ServerNotConnectedError " \
-               "in order to reconnect...")
-    raise irclib.ServerNotConnectedError
+    self.log.info("IRC: Queuing reconnection in %s seconds" % proposed_wait)
+    self.irc.execute_delayed(0, self.connect)
 
   def on_part(self, connection, event):
     if connection != self.connection:
@@ -222,6 +230,35 @@ class IRCBot:
       self.log.notice("IRC: Suppressed error: couldn't remove %s from " \
                  "self.channels" % event.target())
       self.log.info("".join(traceback.format_exc()))
+
+  def on_pong(self, connection, event):
+    if connection != self.connection:
+      self.log.info("IRC: Incorrect connection in on_pong")
+      return
+
+    self.log.debug("IRC: Got pong from server <3")
+    self.ping_reply = True
+
+  def ping_pong(self):
+    self.log.debug("IRC: Ping-pong!")
+    self.irc.execute_delayed(600, self.ping_pong)
+
+    if not self.connection.connected:
+      self.log.debug("IRC: Ping-pong: not connected")
+      return
+
+    self.log.debug("IRC: Pinging %s" % self.connection.real_server_name)
+    self.ping_reply = False
+    self.connection.ping(self.connection.real_server_name)
+    self.irc.execute_delayed(30, self.check_ping_pong)
+
+  def check_ping_pong(self):
+    self.log.debug("IRC: Ping-pong: checking")
+
+    if not self.ping_reply:
+      self.ping_reply = True
+      self.log.error("IRC: No ping reply, disconnecting")
+      self.irc.execute_delayed(0, self.reconnect)
 
 class JoinMessageConnection():
   def __init__(self, bot, channel):

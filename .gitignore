@@ -1,4 +1,7 @@
 *.pyc
 *.swp
-imaplib2.py
 griffonbot.log
+imaplib2.py
+anyjson.py
+tweetstream.py
+irclib.py

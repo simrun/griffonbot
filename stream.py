@@ -57,6 +57,12 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
     super(ReconnectingTrackStream, self).__init__(username, password, \
                                                   keywords, url)
 
+  def _init_conn(self):
+    super(ReconnectingTrackStream, self)._init_conn()
+
+    # This. Is. Disgusting.
+    self._conn.fp._sock.fp._sock.settimeout(60)
+
   def next(self):
     while True:
       try:

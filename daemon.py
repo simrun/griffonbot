@@ -11,11 +11,12 @@
 # GNU General Public License for more details.
 
 import sys
+import os
 import threading
 import traceback
 import signal
 
-die = threading.Event()
+# TODO: This is ugly. Do it like habitat, with a signal.alarm() fallback
 
 class DaemonThread(threading.Thread):
   def __init__(self, log, **kwargs):
@@ -28,10 +29,17 @@ class DaemonThread(threading.Thread):
       super(DaemonThread, self).run()
     except:
       self.log.error("".join(traceback.format_exc()))
-      self.log.info("DaemonThread: Setting 'die' flag to kill process.")
-      die.set()
+      self.log.info("DaemonThread: Attempting to kill process.")
+      os.kill(os.getpid(), signal.SIGINT)
 
 def immediate_death(a, b):
-  die.set()
+  sys.exit()
 
 signal.signal(signal.SIGINT, immediate_death)
+
+def wait():
+  try:
+    while True:
+      signal.pause()
+  except SystemExit:
+    pass

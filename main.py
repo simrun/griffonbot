@@ -17,7 +17,7 @@ import sys
 from log import Log
 from stream import Stream
 from bot import IRCBot
-from daemon import die
+from daemon import wait
 from mail import Mail
 from stdin import Stdin
 import config
@@ -51,7 +51,7 @@ def main():
     stdin.start()
 
   log.debug("Main: Now waiting...")
-  die.wait()
+  wait()
 
   log.notice("Dead: Exiting...")
   sys.exit(1)
