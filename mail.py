@@ -107,7 +107,10 @@ class Mail:
           self.imap.expunge()
 
           self.log.debug("Mail: Now calling imap.idle() ... ")
+
+          self.imap.sock.settimeout(600)
           self.imap.idle()
+          self.imap.sock.settimeout(60)
 
           self.log.debug("Mail: Wait finished; now looping - " \
                          "searching for msgs...")

@@ -40,6 +40,13 @@ class IRCBot:
     log.debug("IRC: Setting up...")
 
     self.irc = NewIRC();
+    self.irc.add_global_handler("welcome", self.on_connect)
+    self.irc.add_global_handler("join", self.on_join)
+    self.irc.add_global_handler("kick", self.on_part)
+    self.irc.add_global_handler("disconnect", self.on_disconnect)
+    self.irc.add_global_handler("part", self.on_part)
+    self.irc.add_global_handler("pong", self.on_pong)
+
     self.config = config
     self.log = log
     self.queue = Queue.Queue()
@@ -141,13 +148,6 @@ class IRCBot:
       self.log.info("".join(traceback.format_exc()))
       self.reconnect()
 
-    self.connection.add_global_handler("welcome", self.on_connect)
-    self.connection.add_global_handler("join", self.on_join)
-    self.connection.add_global_handler("kick", self.on_part)
-    self.connection.add_global_handler("disconnect", self.on_disconnect)
-    self.connection.add_global_handler("part", self.on_part)
-    self.connection.add_global_handler("pong", self.on_pong)
-
   def on_connect(self, connection, event):
     if connection != self.connection:
       self.log.info("IRC: Incorrect connection in on_connect")
@@ -165,8 +165,6 @@ class IRCBot:
       return
 
     if event.source().split("!")[0] != self.config.nick:
-      self.log.debug("IRC: Discarded wrong nick JOIN %s %s" % 
-                         (event.source(), event.target()))
       return
 
     self.log.debug("IRC: Joined channel %s" % event.target())
@@ -218,8 +216,6 @@ class IRCBot:
       return
 
     if event.source().split("!")[0] != self.config.nick:
-      self.log.debug("IRC: Discarded wrong nick PART %s %s" % 
-                         (event.source(), event.target()))
       return
 
     self.log.info("IRC: Left %s" % event.target())

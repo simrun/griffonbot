@@ -13,6 +13,7 @@
 # GNU General Public License for more details.
 
 import sys
+import socket
 
 from log import Log
 from stream import Stream
@@ -23,6 +24,9 @@ from stdin import Stdin
 import config
 
 def main():
+  # If all else fails,
+  socket.setdefaulttimeout(60)
+
   sys.stderr.write("Griffonbot starting up...\n")
   log = Log(config.log)
 
