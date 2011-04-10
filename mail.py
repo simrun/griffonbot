@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2010 Daniel Richman and Simrun Basuita
+# Copyright 2010 Daniel Richman, Simrun Basuita, Jon Sowman
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,7 +51,8 @@ class Mail:
 
     mail = email.message_from_string(data)
 
-    message = "Received email: %s \"%s\"" % (mail['From'], mail['Subject'])
+    fromfields = email.utils.parseaddr(mail['From'])
+    message = "Received email: %s \"%s\"" % (fromfields[0], mail['Subject'])
     self.log.debug("Mail: Parsed email: %s" % message)
 
     if self.config.match(mail):
