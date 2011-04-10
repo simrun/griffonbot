@@ -70,13 +70,7 @@ class Mail:
         self.imap = imaplib2.IMAP4_SSL(self.config.imap_server)
 
         self.log.debug("Mail: Logging in...")
-
-        try:
-          self.imap.login(self.config.username, self.config.password)
-        except imaplib2.IMAP4.abort:
-          # Don't catch errors for this stage >_<
-          self.log.error("".join(traceback.format_exc()))
-          raise SrsError()
+        self.imap.login(self.config.username, self.config.password)
 
         self.log.debug("Mail: Success")
         self.reconnects = 0
@@ -115,9 +109,6 @@ class Mail:
           self.log.debug("Mail: Wait finished; now looping - " \
                          "searching for msgs...")
           waited = True
-
-      except SrsError:
-        raise
 
       except (imaplib2.IMAP4.abort, socket.error):
         self.log.notice("Mail: Error caught:")
