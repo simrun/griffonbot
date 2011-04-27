@@ -15,7 +15,7 @@ from log import DEBUG, INFO
 class log:
   filename = "kickbot.log"
   file     = DEBUG
-  stderr   = INFO
+  stderr   = DEBUG
 
 class irc:
   server   = "irc.freenode.net"
@@ -27,6 +27,3 @@ class irc:
   channel  = "#kickbot"
   max_reconnect_wait = 60
   min_period = 300
-
-class stdin:
-  enable = True

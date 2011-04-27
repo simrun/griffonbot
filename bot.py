@@ -55,7 +55,7 @@ class IRCBot:
 
   def message(self, msg, channel):
     if self.messaged:
-      self.log.debug("IRC: throttled message %s" % msg)
+      self.log.debug("IRC: throttled message -> %s '%s'" % (channel, msg))
       return
 
     self.log.info("IRC: message -> %s '%s'" % (channel, msg))
