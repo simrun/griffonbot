@@ -24,7 +24,7 @@ class irc:
   password = ""
   user     = "kickbot"
   realname = "kickbot [adapted http://github.com/ssb/griffonbot branch kickbot]"
-  channels = [ "#kickbot" ]
+  channel  = "#kickbot"
   max_reconnect_wait = 60
   min_period = 300
 

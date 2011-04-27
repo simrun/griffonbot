@@ -16,11 +16,7 @@ import sys
 import socket
 
 from log import Log
-from stream import Stream
 from bot import IRCBot
-from daemon import wait
-from mail import Mail
-from stdin import Stdin
 import config
 
 def main():

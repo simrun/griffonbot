@@ -17,8 +17,6 @@ import traceback
 from lib import irclib
 from kickmsg import get_kick_message
 
-# Wooo! Monkey patchz!
-
 def action_message(act):
   return "\x01ACTION %s \x01" % act
 
@@ -92,8 +90,7 @@ class IRCBot:
       return
 
     self.log.debug("IRC: Connected; joining...")
-    for channel in self.config.channels:
-      self.connection.join(channel)
+    self.connection.join(self.config.channel)
 
     self.reconnects = 0
  
@@ -172,14 +169,13 @@ class IRCBot:
       return
 
     kicker = event.source().split("!")[0]
-    victim = e.arguments()[0]
+    victim = event.arguments()[0]
     channel = event.target()
 
     if victim == self.config.nick:
-      self.on_part(self, connection, event)
-
-      self.log.info("IRC: Kicked from %s" % channel)
+      self.log.info("IRC: Kicked from %s by %s" % (channel, kicker))
       self._rm_channel(event.target())
+      return
 
     self.log.info("IRC: %s kicked from %s" % (victim, channel))
     self.message(get_kick_message(kicker, victim, channel), channel)
