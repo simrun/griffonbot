@@ -17,7 +17,7 @@ import time
 import threading
 import traceback
 
-import irclib
+from lib import irclib
 
 # Wooo! Monkey patchz!
 

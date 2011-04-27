@@ -18,7 +18,7 @@ import email
 import traceback
 import socket
 
-import imaplib2
+from lib import imaplib2
 
 import time
 

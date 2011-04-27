@@ -18,7 +18,7 @@ from daemon import DaemonThread
 import unicodedata
 from xml.sax import saxutils
 
-import tweetstream
+from lib import tweetstream
 
 # Monkey Patch
 import socket

@@ -18,6 +18,8 @@ INFO   = (1, "Info  ")
 NOTICE = (2, "Notice")
 ERROR  = (3, "Error ")
 
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 class Log:
   def __init__(self, config):
     self.config = config

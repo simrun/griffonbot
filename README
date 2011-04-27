@@ -35,3 +35,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+NB:
+Several external libraries are included in the lib directory. These
+files may be under different licenses. See the individual files for more
+information.
