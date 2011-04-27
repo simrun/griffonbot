@@ -11,26 +11,13 @@
 # GNU General Public License for more details.
 
 import sys
-import Queue
-from daemon import DaemonThread
 import time
-import threading
 import traceback
 
 from lib import irclib
+from kickmsg import get_kick_message
 
 # Wooo! Monkey patchz!
-
-class NewIRC(irclib.IRC):
-  def __init__(self):
-    irclib.IRC.__init__(self)
-    self.delayed_commands_lock = threading.RLock()
-  def process_timeout(self):
-    with self.delayed_commands_lock:
-      irclib.IRC.process_timeout(self)
-  def execute_delayed(self, *args):
-    with self.delayed_commands_lock:
-      irclib.IRC.execute_delayed(self, *args)
 
 def action_message(act):
   return "\x01ACTION %s \x01" % act
@@ -39,28 +26,23 @@ class IRCBot:
   def __init__(self, config, log):
     log.debug("IRC: Setting up...")
 
-    self.irc = NewIRC();
+    self.irc = irclib.IRC()
     self.irc.add_global_handler("welcome", self.on_connect)
     self.irc.add_global_handler("join", self.on_join)
-    self.irc.add_global_handler("kick", self.on_part)
+    self.irc.add_global_handler("kick", self.on_kick)
     self.irc.add_global_handler("disconnect", self.on_disconnect)
     self.irc.add_global_handler("part", self.on_part)
     self.irc.add_global_handler("pong", self.on_pong)
 
     self.config = config
     self.log = log
-    self.queue = Queue.Queue()
 
     self.reconnects = 0
     self.reconnecting = False
     self.ping_reply = True
+    self.messaged = False
 
     self.channels = []
-
-  def start(self):
-    self.log.debug("IRC: Starting...")
-    DaemonThread(self.log, target=self.main).start()
-    DaemonThread(self.log, target=self.process_queue).start()
 
   def main(self):
     self.log.debug("IRC: Running!")
@@ -73,64 +55,20 @@ class IRCBot:
     while True:
       self.irc.process_once(1)
 
-  def queue_message(self, msg):
-    self.log.debug("IRC: queue.put() %s" % msg)
-    self.queue.put(msg)
-
-  def process_queue(self):
-    self.log.debug("IRC: Running (process_queue)!")
-
-    while True:
-      self.regulate_queue()
-
-      self.log.debug("IRC: waiting on queue.get...")
-      msg = self.queue.get()
-      self.log.debug("IRC: queue.get() got %s" % msg)
-
-      self.message_all(msg)
-
-  def regulate_queue(self):
-    self.log.debug("IRC: Examining Queue...")
-
-    size = self.queue.qsize()
-    self.log.debug("IRC: Queue size = %i, queue_max = %i" \
-               % (size, self.config.flood.queue_max))
-
-    if size > self.config.flood.queue_max:
-      items = 0
-
-      self.log.debug("IRC: Queue - attempting to drop %i items" \
-                 % self.config.flood.queue_drop)
-
-      try:
-        for i in range(0, self.config.flood.queue_drop):
-          self.queue.get_nowait()
-          items = items + 1
-      except Queue.Empty:
-        pass
- 
-      self.log.debug("IRC: Dropped %i of %i queued messages (flood)" \
-                 % (items, size))
-      self.message_all(action_message("dropped %i of %i queued messages "\
-                                      "in the name of flood-control" % \
-                                      (items, size)))
-
-  def message_all(self, msg):
-    self.irc.execute_delayed(0, self.do_message_all, (msg, ))
-
-  def do_message_all(self, msg):
-    self.log.debug("IRC: message_all() %s" % msg)
-
-    for channel in self.channels:
-      self.message(msg, channel)
-
   def message(self, msg, channel):
+    if self.messaged:
+      self.log.debug("IRC: throttled message %s" % msg)
+      return
+
     self.log.info("IRC: message -> %s '%s'" % (channel, msg))
     self.connection.privmsg(channel, msg)
-
-    self.log.debug("IRC: flood.wait...")
-    time.sleep(self.config.flood.wait)
+    self.messaged = True
+    self.irc.execute_delayed(self.config.min_period, self.msgrdy)
  
+  def msgrdy(self):
+    self.log.debug("IRC: time's up! Message ready.")
+    self.messaged = False
+
   def connect(self):
     self.reconnecting = False
 
@@ -173,7 +111,6 @@ class IRCBot:
       self.log.debug("IRC: Suppressed error: %s is already in self.channels" \
                  % event.target())
     else:
-      self.config.join_msg(JoinMessageConnection(self, event.target()))
       self.channels.append(event.target())
 
   def on_disconnect(self, connection, event):
@@ -219,13 +156,33 @@ class IRCBot:
       return
 
     self.log.info("IRC: Left %s" % event.target())
+    self._rm_channel(event.target())
 
+  def _rm_channel(self, channel):
     try:
-      self.channels.remove(event.target())
+      self.channels.remove(channel)
     except:
       self.log.notice("IRC: Suppressed error: couldn't remove %s from " \
-                 "self.channels" % event.target())
+                 "self.channels" % channel)
       self.log.info("".join(traceback.format_exc()))
+
+  def on_kick(self, connection, event):
+    if connection != self.connection:
+      self.log.info("IRC: Incorrect connection in on_kick")
+      return
+
+    kicker = event.source().split("!")[0]
+    victim = e.arguments()[0]
+    channel = event.target()
+
+    if victim == self.config.nick:
+      self.on_part(self, connection, event)
+
+      self.log.info("IRC: Kicked from %s" % channel)
+      self._rm_channel(event.target())
+
+    self.log.info("IRC: %s kicked from %s" % (victim, channel))
+    self.message(get_kick_message(kicker, victim, channel), channel)
 
   def on_pong(self, connection, event):
     if connection != self.connection:
@@ -255,16 +212,3 @@ class IRCBot:
       self.ping_reply = True
       self.log.error("IRC: No ping reply, disconnecting")
       self.irc.execute_delayed(0, self.reconnect)
-
-class JoinMessageConnection():
-  def __init__(self, bot, channel):
-    self.bot = bot
-    self.channel = channel
-
-  def action(self, msg):
-    self.message(action_message(msg))
-
-  def message(self, msg):
-    self.bot.log.debug("IRC: JoinMessageConnection message() %s" % msg)
-    self.bot.message(msg, self.channel)
-

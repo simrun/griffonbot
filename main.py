@@ -27,38 +27,14 @@ def main():
   # If all else fails,
   socket.setdefaulttimeout(60)
 
-  sys.stderr.write("Griffonbot starting up...\n")
+  sys.stderr.write("Kickbot starting up...\n")
   log = Log(config.log)
 
   log.debug("Main: Setting up...")
   bot = IRCBot(config.irc, log)
 
-  if config.twitter.enable:
-    stream = Stream(config.twitter, bot.queue_message, log)
-
-  if config.mail.enable:
-    mail = Mail(config.mail, bot.queue_message, log)
-
-  if config.stdin.enable:
-    stdin = Stdin(config.stdin, bot.queue_message, log)
-
   log.info("Main: Starting...")
-  bot.start()
-
-  if config.twitter.enable:
-    stream.start()
-
-  if config.mail.enable:
-    mail.start()
-
-  if config.stdin.enable:
-    stdin.start()
-
-  log.debug("Main: Now waiting...")
-  wait()
-
-  log.notice("Dead: Exiting...")
-  sys.exit(1)
+  bot.main()
 
 if __name__ == "__main__":
   main()

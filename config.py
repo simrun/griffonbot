@@ -10,54 +10,23 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from log import DEBUG, INFO, NOTICE, ERROR
+from log import DEBUG, INFO
 
 class log:
-  filename = "griffonbot.log"
+  filename = "kickbot.log"
   file     = DEBUG
   stderr   = INFO
-
-class twitter:
-  enable = True
-  username = "griffonbot"
-  password = ""
-  keywords = [ "#arhab", "#ukhas", "#cusf" ]
-  max_reconnect_wait = 60
-
-class mail:
-  enable = True
-  imap_server = "imap.gmail.com"
-  username = "griffonbot@gmail.com"
-  password = ""
-  max_reconnect_wait = 60
-
-  match = classmethod(lambda s,e: e['List-ID'] == "<ukhas.googlegroups.com>")
-  match_description = "emails sent to ukhas@googlegroups.com"
 
 class irc:
   server   = "irc.freenode.net"
   port     = 6667
-  nick     = "griffonbot"
+  nick     = "kickbot"
   password = ""
-  user     = "griffonbot"
-  realname = "GriffonBot [http://github.com/ssb/griffonbot]"
-  channels = [ "#griffonbot" ]
+  user     = "kickbot"
+  realname = "kickbot [adapted http://github.com/ssb/griffonbot branch kickbot]"
+  channels = [ "#kickbot" ]
   max_reconnect_wait = 60
-
-  class flood:
-    wait = 1
-    queue_max = 20
-    queue_drop = 18
-
-  @classmethod
-  def join_msg(self, con):
-    con.action("is %s" % irc.realname)
-
-    if twitter.enable:
-      con.action("is following: %s" % " ".join(twitter.keywords))
-
-    if mail.enable:
-      con.action("is tracking %s" % mail.match_description)
+  min_period = 300
 
 class stdin:
   enable = True
