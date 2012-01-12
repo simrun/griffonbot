@@ -68,7 +68,7 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
 
     while True:
       try:
-        data = super(ReconnectingTrackStream, self).next()
+        data = super_iter.next()
         self.reconnects = 0
         yield data
       except tweetstream.ConnectionError, e:
