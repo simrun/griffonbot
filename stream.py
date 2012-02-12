@@ -64,14 +64,14 @@ class ReconnectingTrackStream(tweetstream.TrackStream):
     self._conn.fp._sock.fp._sock.settimeout(60)
 
   def __iter__(self):
-    super_iter = super(ReconnectingTrackStream, self).__iter__()
-
     while True:
+      super_iter = super(ReconnectingTrackStream, self).__iter__()
+
       try:
         data = super_iter.next()
         self.reconnects = 0
         yield data
-      except tweetstream.ConnectionError, e:
+      except (tweetstream.ConnectionError, StopIteration):
         self.reconnects += 1
         self.log.notice("Stream: Connection error; self.reconnects = %i" \
 	           % self.reconnects)
