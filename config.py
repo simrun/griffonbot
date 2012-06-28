@@ -40,7 +40,7 @@ class irc:
   nick     = "griffonbot"
   password = ""
   user     = "griffonbot"
-  realname = "GriffonBot [http://github.com/ssb/griffonbot]"
+  realname = "GriffonBot [http://github.com/simrun/griffonbot]"
   channels = [ "#griffonbot" ]
   max_reconnect_wait = 60
 
