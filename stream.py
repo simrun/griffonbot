@@ -107,6 +107,10 @@ class Stream:
       for tweet in stream:
         for f in [ format_tweet, crush_whitespace, fix_entities, fix_unicode ]:
           tweet = f(tweet)
+          if tweet is None:
+            break
+        if tweet is None:
+          break
 
         self.log.debug("Stream: Pushing Tweet %s" % tweet)
         self.callback(tweet)

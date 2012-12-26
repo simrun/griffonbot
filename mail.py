@@ -15,6 +15,8 @@
 from daemon import DaemonThread
 import threading
 import email
+import email.header
+import email.utils
 import traceback
 import socket
 
@@ -39,6 +41,15 @@ class Mail:
     self.log.debug("Mail: Starting...")
     DaemonThread(self.log, target=self.main).start()
 
+  def decode(self, what):
+    try:
+        (temp, encoding) = email.header.decode_header(what)[0]
+        if encoding:
+            return temp.decode(encoding).encode("utf-8")
+    except:
+        self.log("Mail: Failed to decode " + what)
+    return what
+
   def process_mail(self, response):
     self.log.debug("Mail: Processing email...")
 
@@ -51,8 +62,10 @@ class Mail:
 
     mail = email.message_from_string(data)
 
-    fromfields = email.utils.parseaddr(mail['From'])
-    message = "Received email: %s \"%s\"" % (fromfields[0], mail['Subject'])
+    from_name = self.decode(email.utils.parseaddr(mail['From'])[0])
+    subject = self.decode(mail['Subject'])
+    message = "Received email: %s \"%s\"" % (from_name, subject)
+
     self.log.debug("Mail: Parsed email: %s" % message)
 
     if self.config.match(mail):
